@@ -1,0 +1,604 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 90;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0692958B10985E8F7BED93B3 /* TranscriptPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4870F9081116C4EB8E0AB1BF /* TranscriptPanel.swift */; };
+		06DE3C3816C1FF419BB21584 /* GhostMindApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9264B97F761ADA69D712F488 /* GhostMindApp.swift */; };
+		085C192141D452AC7C701CD3 /* TranscriptionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A75F5A9670765185CE83DC1 /* TranscriptionEngine.swift */; };
+		091DD5F6C61D46F154B4353E /* GhostMindTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92C169CB1399E284DF5197E9 /* GhostMindTests.swift */; };
+		1147DF0A6B301EEFCDF856EA /* MarkdownRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CD25C1764C4CA097877CEF9 /* MarkdownRenderer.swift */; };
+		22D2A04099DDD4A97B67D7BB /* GoogleSTTEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3452F310294C96C510E7011D /* GoogleSTTEngine.swift */; };
+		2D421630C585B42E0A36917C /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 047F8BA31AF150E4C9397F6C /* SessionManager.swift */; };
+		3C569D90B8524DEB068BC57E /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64AA4B8856BD5549E4029C40 /* HotKeyManager.swift */; };
+		3C89292AA39E3C5A723F531F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77428D2F88CBF8D85934A3D5 /* SettingsView.swift */; };
+		5863DAB075FA4A8A5D5F54FE /* AIChatPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A381FB68D2B2DCA908B84D /* AIChatPanel.swift */; };
+		600D391BEBB246DB749ECA8C /* InputBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6695E459697DA5569E79FECD /* InputBar.swift */; };
+		615503ECF4C4D6A42AAA2A43 /* ScreenReaderEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05AFA21A4D345D9F65321EC9 /* ScreenReaderEngine.swift */; };
+		64A0F502205AF8DAF4DCD8AB /* ViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D815C402A10627CB7A5FEF /* ViewModifiers.swift */; };
+		75655A7A6BEE8E1253F384C9 /* QuickActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22080BC062B1AE22CB2F4756 /* QuickActionBar.swift */; };
+		783C112AF72AAB83E5F1457B /* KeyValueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB8B63BAAF9146E1C5327776 /* KeyValueStore.swift */; };
+		9404D7CC5BF3751BB5B4DA10 /* RequestQueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A387425C665826B2349FDA7 /* RequestQueueManager.swift */; };
+		C411A14108DF15FEE838132B /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CB2B1A65A7DB8F32E1D70B /* AIProvider.swift */; };
+		C638721376608505F0C8FA1C /* ControlBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F4E27A0695C0D6372790B4 /* ControlBar.swift */; };
+		C97350C9A1659114ACBBE6ED /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CDAD5746C4A99A78569349A /* AudioCaptureManager.swift */; };
+		CE01EE8D3257FFCCAE60A2F2 /* SessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E850B10DAC0C728B00B4BB /* SessionHistoryView.swift */; };
+		CE6F836861B9BA27F96817DC /* ProviderKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E94218286F2B2E59B94720 /* ProviderKeyManager.swift */; };
+		D5AA73259DBBCC7EC40B5D40 /* MainOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629E4EDB2F633CD34BBF4A6E /* MainOverlayView.swift */; };
+		D5C4CDB2EB2B5F11AD637F47 /* AIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FCF0F8CA6D43F514C507B3 /* AIClient.swift */; };
+		DA9BBEB12F6609387566073F /* StealthWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2214D7EF4B622410A334E726 /* StealthWindowController.swift */; };
+		FFE62C034AC29F9E960CD3C7 /* WhisperEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788C9B8E55CEC0D881D544C9 /* WhisperEngine.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		83D2379EAAA5B456991CACA9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 54762C0CEA2D7AB8B22BBC37 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 06E01243EB74B26619C74B69;
+			remoteInfo = GhostMind;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		047F8BA31AF150E4C9397F6C /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
+		05AFA21A4D345D9F65321EC9 /* ScreenReaderEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenReaderEngine.swift; sourceTree = "<group>"; };
+		0A387425C665826B2349FDA7 /* RequestQueueManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestQueueManager.swift; sourceTree = "<group>"; };
+		0CD25C1764C4CA097877CEF9 /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderer.swift; sourceTree = "<group>"; };
+		22080BC062B1AE22CB2F4756 /* QuickActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionBar.swift; sourceTree = "<group>"; };
+		2214D7EF4B622410A334E726 /* StealthWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StealthWindowController.swift; sourceTree = "<group>"; };
+		25FCF0F8CA6D43F514C507B3 /* AIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIClient.swift; sourceTree = "<group>"; };
+		2A75F5A9670765185CE83DC1 /* TranscriptionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionEngine.swift; sourceTree = "<group>"; };
+		3452F310294C96C510E7011D /* GoogleSTTEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleSTTEngine.swift; sourceTree = "<group>"; };
+		409CDE4CCE63DE9601CF652D /* GhostMindTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GhostMindTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4870F9081116C4EB8E0AB1BF /* TranscriptPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptPanel.swift; sourceTree = "<group>"; };
+		4CDAD5746C4A99A78569349A /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
+		57E850B10DAC0C728B00B4BB /* SessionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryView.swift; sourceTree = "<group>"; };
+		61DC2BBB91DE805ECD502263 /* GhostMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GhostMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		629E4EDB2F633CD34BBF4A6E /* MainOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainOverlayView.swift; sourceTree = "<group>"; };
+		64AA4B8856BD5549E4029C40 /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		6695E459697DA5569E79FECD /* InputBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBar.swift; sourceTree = "<group>"; };
+		66D815C402A10627CB7A5FEF /* ViewModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModifiers.swift; sourceTree = "<group>"; };
+		77428D2F88CBF8D85934A3D5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		788C9B8E55CEC0D881D544C9 /* WhisperEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperEngine.swift; sourceTree = "<group>"; };
+		78E94218286F2B2E59B94720 /* ProviderKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyManager.swift; sourceTree = "<group>"; };
+		849914B02F8FA3440040A544 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9264B97F761ADA69D712F488 /* GhostMindApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostMindApp.swift; sourceTree = "<group>"; };
+		92C169CB1399E284DF5197E9 /* GhostMindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostMindTests.swift; sourceTree = "<group>"; };
+		99CB2B1A65A7DB8F32E1D70B /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
+		B6A381FB68D2B2DCA908B84D /* AIChatPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatPanel.swift; sourceTree = "<group>"; };
+		E9F4E27A0695C0D6372790B4 /* ControlBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlBar.swift; sourceTree = "<group>"; };
+		FB8B63BAAF9146E1C5327776 /* KeyValueStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyValueStore.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		32044E8780380F939BBB9C13 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				9264B97F761ADA69D712F488 /* GhostMindApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		395D6A11D417EC15470BB3A8 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				452537461C3CA4A5EEE08BB8 /* Components */,
+				BAEA8521C3A05005EE765D1F /* Modifiers */,
+				E6021B61E5920772D99D90D0 /* Screens */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		452537461C3CA4A5EEE08BB8 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B6A381FB68D2B2DCA908B84D /* AIChatPanel.swift */,
+				E9F4E27A0695C0D6372790B4 /* ControlBar.swift */,
+				6695E459697DA5569E79FECD /* InputBar.swift */,
+				22080BC062B1AE22CB2F4756 /* QuickActionBar.swift */,
+				4870F9081116C4EB8E0AB1BF /* TranscriptPanel.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		54A1D096DF2430BDF5692563 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				0CD25C1764C4CA097877CEF9 /* MarkdownRenderer.swift */,
+				05AFA21A4D345D9F65321EC9 /* ScreenReaderEngine.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		57D33FB44366E749A2E2A2E9 /* GhostMind */ = {
+			isa = PBXGroup;
+			children = (
+				696432B9672D13FF640FFB3B /* Sources */,
+				DFBD3ACCA3EC6B8472359FE1 /* Tests */,
+				849914B02F8FA3440040A544 /* Assets.xcassets */,
+			);
+			path = GhostMind;
+			sourceTree = "<group>";
+		};
+		696432B9672D13FF640FFB3B /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				F6B4B7C9B355C67AFBDFB553 /* AI */,
+				32044E8780380F939BBB9C13 /* App */,
+				DDFF91D5E8C25073396B9C08 /* Audio */,
+				AF5C984D63DF8B9D7F42DD2C /* Session */,
+				DEF7BFE309751ED4AF34519C /* Stealth */,
+				F3CA71EE9492ECCDFE01A7CF /* Storage */,
+				395D6A11D417EC15470BB3A8 /* UI */,
+				54A1D096DF2430BDF5692563 /* Utils */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		AF5C984D63DF8B9D7F42DD2C /* Session */ = {
+			isa = PBXGroup;
+			children = (
+				0A387425C665826B2349FDA7 /* RequestQueueManager.swift */,
+				047F8BA31AF150E4C9397F6C /* SessionManager.swift */,
+			);
+			path = Session;
+			sourceTree = "<group>";
+		};
+		BAEA8521C3A05005EE765D1F /* Modifiers */ = {
+			isa = PBXGroup;
+			children = (
+				66D815C402A10627CB7A5FEF /* ViewModifiers.swift */,
+			);
+			path = Modifiers;
+			sourceTree = "<group>";
+		};
+		DDFF91D5E8C25073396B9C08 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				4CDAD5746C4A99A78569349A /* AudioCaptureManager.swift */,
+				3452F310294C96C510E7011D /* GoogleSTTEngine.swift */,
+				2A75F5A9670765185CE83DC1 /* TranscriptionEngine.swift */,
+				788C9B8E55CEC0D881D544C9 /* WhisperEngine.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		DEF7BFE309751ED4AF34519C /* Stealth */ = {
+			isa = PBXGroup;
+			children = (
+				64AA4B8856BD5549E4029C40 /* HotKeyManager.swift */,
+				2214D7EF4B622410A334E726 /* StealthWindowController.swift */,
+			);
+			path = Stealth;
+			sourceTree = "<group>";
+		};
+		DFBD3ACCA3EC6B8472359FE1 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				92C169CB1399E284DF5197E9 /* GhostMindTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		E6021B61E5920772D99D90D0 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				629E4EDB2F633CD34BBF4A6E /* MainOverlayView.swift */,
+				57E850B10DAC0C728B00B4BB /* SessionHistoryView.swift */,
+				77428D2F88CBF8D85934A3D5 /* SettingsView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		EBC6A547EA5CBDEA0BFA1561 = {
+			isa = PBXGroup;
+			children = (
+				57D33FB44366E749A2E2A2E9 /* GhostMind */,
+				FCF0B1D027A414B9B26CF009 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F3CA71EE9492ECCDFE01A7CF /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				FB8B63BAAF9146E1C5327776 /* KeyValueStore.swift */,
+			);
+			path = Storage;
+			sourceTree = "<group>";
+		};
+		F6B4B7C9B355C67AFBDFB553 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				25FCF0F8CA6D43F514C507B3 /* AIClient.swift */,
+				99CB2B1A65A7DB8F32E1D70B /* AIProvider.swift */,
+				78E94218286F2B2E59B94720 /* ProviderKeyManager.swift */,
+			);
+			path = AI;
+			sourceTree = "<group>";
+		};
+		FCF0B1D027A414B9B26CF009 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				61DC2BBB91DE805ECD502263 /* GhostMind.app */,
+				409CDE4CCE63DE9601CF652D /* GhostMindTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		06E01243EB74B26619C74B69 /* GhostMind */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 23BD98F6B9EA90D58E85A48D /* Build configuration list for PBXNativeTarget "GhostMind" */;
+			buildPhases = (
+				5DB8BCC4645C22E5B95A6622 /* Sources */,
+			);
+			buildRules = (
+			);
+			name = GhostMind;
+			productName = GhostMind;
+			productReference = 61DC2BBB91DE805ECD502263 /* GhostMind.app */;
+			productType = "com.apple.product-type.application";
+		};
+		EFA8ECCCC49D8888E702813D /* GhostMindTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 07AC62B2CD0B7C0FE0357A9E /* Build configuration list for PBXNativeTarget "GhostMindTests" */;
+			buildPhases = (
+				6D6B8B8A987BA436811E9464 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3E440B13B8C853787D948887 /* PBXTargetDependency */,
+			);
+			name = GhostMindTests;
+			productName = GhostMindTests;
+			productReference = 409CDE4CCE63DE9601CF652D /* GhostMindTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		54762C0CEA2D7AB8B22BBC37 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					EFA8ECCCC49D8888E702813D = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 55CFB37521C29DCAC266B060 /* Build configuration list for PBXProject "GhostMind" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = EBC6A547EA5CBDEA0BFA1561;
+			preferredProjectObjectVersion = 90;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				06E01243EB74B26619C74B69 /* GhostMind */,
+				EFA8ECCCC49D8888E702813D /* GhostMindTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5DB8BCC4645C22E5B95A6622 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				5863DAB075FA4A8A5D5F54FE /* AIChatPanel.swift in Sources */,
+				D5C4CDB2EB2B5F11AD637F47 /* AIClient.swift in Sources */,
+				C411A14108DF15FEE838132B /* AIProvider.swift in Sources */,
+				C97350C9A1659114ACBBE6ED /* AudioCaptureManager.swift in Sources */,
+				C638721376608505F0C8FA1C /* ControlBar.swift in Sources */,
+				06DE3C3816C1FF419BB21584 /* GhostMindApp.swift in Sources */,
+				22D2A04099DDD4A97B67D7BB /* GoogleSTTEngine.swift in Sources */,
+				3C569D90B8524DEB068BC57E /* HotKeyManager.swift in Sources */,
+				600D391BEBB246DB749ECA8C /* InputBar.swift in Sources */,
+				783C112AF72AAB83E5F1457B /* KeyValueStore.swift in Sources */,
+				D5AA73259DBBCC7EC40B5D40 /* MainOverlayView.swift in Sources */,
+				1147DF0A6B301EEFCDF856EA /* MarkdownRenderer.swift in Sources */,
+				CE6F836861B9BA27F96817DC /* ProviderKeyManager.swift in Sources */,
+				75655A7A6BEE8E1253F384C9 /* QuickActionBar.swift in Sources */,
+				9404D7CC5BF3751BB5B4DA10 /* RequestQueueManager.swift in Sources */,
+				615503ECF4C4D6A42AAA2A43 /* ScreenReaderEngine.swift in Sources */,
+				CE01EE8D3257FFCCAE60A2F2 /* SessionHistoryView.swift in Sources */,
+				2D421630C585B42E0A36917C /* SessionManager.swift in Sources */,
+				3C89292AA39E3C5A723F531F /* SettingsView.swift in Sources */,
+				DA9BBEB12F6609387566073F /* StealthWindowController.swift in Sources */,
+				0692958B10985E8F7BED93B3 /* TranscriptPanel.swift in Sources */,
+				085C192141D452AC7C701CD3 /* TranscriptionEngine.swift in Sources */,
+				64A0F502205AF8DAF4DCD8AB /* ViewModifiers.swift in Sources */,
+				FFE62C034AC29F9E960CD3C7 /* WhisperEngine.swift in Sources */,
+			);
+		};
+		6D6B8B8A987BA436811E9464 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				091DD5F6C61D46F154B4353E /* GhostMindTests.swift in Sources */,
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3E440B13B8C853787D948887 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 06E01243EB74B26619C74B69 /* GhostMind */;
+			targetProxy = 83D2379EAAA5B456991CACA9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0F7EF4E644BB155D0BCBC1FC /* Debug configuration for PBXNativeTarget "GhostMindTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GhostMind.app/Contents/MacOS/GhostMind";
+			};
+			name = Debug;
+		};
+		1B8D4EC1BB2939BB5869A596 /* Release configuration for PBXProject "GhostMind" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ghostmind.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_VERSION = 5.1;
+				VALID_ARCHS = arm64;
+			};
+			name = Release;
+		};
+		3CF54670FAF1746B45337CDE /* Debug configuration for PBXProject "GhostMind" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ghostmind.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = targeted;
+				SWIFT_VERSION = 5.1;
+				VALID_ARCHS = arm64;
+			};
+			name = Debug;
+		};
+		4007ED6C003C61114837BF82 /* Release configuration for PBXNativeTarget "GhostMindTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GhostMind.app/Contents/MacOS/GhostMind";
+			};
+			name = Release;
+		};
+		89B78B68284BC05B862CA639 /* Release configuration for PBXNativeTarget "GhostMind" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = GhostMind/Resources/GhostMind.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 79ZT3BFA64;
+				INFOPLIST_FILE = GhostMind/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Ghost Mind";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				PRODUCT_NAME = GhostMind;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BA83B56C0E01346EE3D0E276 /* Debug configuration for PBXNativeTarget "GhostMind" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = GhostMind/Resources/GhostMind.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 79ZT3BFA64;
+				INFOPLIST_FILE = GhostMind/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Ghost Mind";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
+				PRODUCT_NAME = GhostMind;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		07AC62B2CD0B7C0FE0357A9E /* Build configuration list for PBXNativeTarget "GhostMindTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F7EF4E644BB155D0BCBC1FC /* Debug configuration for PBXNativeTarget "GhostMindTests" */,
+				4007ED6C003C61114837BF82 /* Release configuration for PBXNativeTarget "GhostMindTests" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		23BD98F6B9EA90D58E85A48D /* Build configuration list for PBXNativeTarget "GhostMind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BA83B56C0E01346EE3D0E276 /* Debug configuration for PBXNativeTarget "GhostMind" */,
+				89B78B68284BC05B862CA639 /* Release configuration for PBXNativeTarget "GhostMind" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+		55CFB37521C29DCAC266B060 /* Build configuration list for PBXProject "GhostMind" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3CF54670FAF1746B45337CDE /* Debug configuration for PBXProject "GhostMind" */,
+				1B8D4EC1BB2939BB5869A596 /* Release configuration for PBXProject "GhostMind" */,
+			);
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 54762C0CEA2D7AB8B22BBC37 /* Project object */;
+}

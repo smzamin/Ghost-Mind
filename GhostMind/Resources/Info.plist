@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>GhostMind</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+
+	<!-- Privacy -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>GhostMind needs microphone access to transcribe your speech during meetings.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>GhostMind uses on-device speech recognition to convert audio to text in real time.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>GhostMind captures system audio from meeting calls to transcribe what others are saying.</string>
+
+	<!-- No Dock Icon, no menu bar -->
+	<key>LSUIElement</key>
+	<true/>
+
+	<!-- macOS version requirements -->
+	<key>LSMinimumSystemVersion</key>
+	<string>13.0</string>
+
+	<!-- No background limitation -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+
+	<!-- High Priority audio -->
+	<key>AVAudioSessionCategory</key>
+	<string>AVAudioSessionCategoryRecord</string>
+</dict>
+</plist>

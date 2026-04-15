@@ -1,0 +1,95 @@
+name: GhostMind
+options:
+  bundleIdPrefix: com.ghostmind
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.ghostmind.app
+    SWIFT_VERSION: 5.10
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    ENABLE_HARDENED_RUNTIME: YES
+    SWIFT_STRICT_CONCURRENCY: targeted
+    ONLY_ACTIVE_ARCH: YES
+    ARCHS: arm64
+    EXCLUDED_ARCHS: x86_64
+    SWIFT_OPTIMIZATION_LEVEL: "-O"
+    GCC_OPTIMIZATION_LEVEL: "s"
+    VALID_ARCHS: arm64
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGNING_ALLOWED: "YES"
+    CODE_SIGN_IDENTITY: "-"
+    PROVISIONING_PROFILE_SPECIFIER: ""
+    PROVISIONING_PROFILE: ""
+    DEVELOPMENT_TEAM: ""
+  configs:
+    Debug:
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGNING_REQUIRED: "NO"
+      CODE_SIGNING_ALLOWED: "YES"
+      CODE_SIGN_IDENTITY: "-"
+    Release:
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGNING_REQUIRED: "NO"
+      CODE_SIGN_IDENTITY: "-"
+      PROVISIONING_PROFILE_SPECIFIER: ""
+      PROVISIONING_PROFILE: ""
+
+targets:
+  GhostMind:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+
+    sources:
+      - path: GhostMind/Sources
+        excludes:
+          - "**/*.DS_Store"
+
+    resources:
+      - path: GhostMind/Resources/Info.plist
+      - path: GhostMind/Resources/AppIcon.icns
+
+    settings:
+      base:
+        INFOPLIST_FILE: GhostMind/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: GhostMind/Resources/GhostMind.entitlements
+        PRODUCT_NAME: GhostMind
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Hide from Dock/Cmd+Tab (enforced in Info.plist too)
+        APPLICATION_EXTENSION_API_ONLY: NO
+
+    dependencies: []
+
+  GhostMindTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "13.0"
+
+    sources:
+      - path: GhostMind/Tests
+
+    dependencies:
+      - target: GhostMind
+
+schemes:
+  GhostMind:
+    build:
+      targets:
+        GhostMind: all
+    run:
+      config: Debug
+      commandLineArguments:
+        "-NSDocumentRevisionsDebugMode": false
+    test:
+      config: Debug
+      targets:
+        - GhostMindTests
+    profile:
+      config: Release
+    archive:
+      config: Release

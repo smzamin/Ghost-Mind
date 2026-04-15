@@ -1,0 +1,46 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Xcode / Build Artifacts
+DerivedData/
+build_data/
+*.xcarchive
+*.app
+*.dSYM
+*.ipa
+*.xcuserstate
+*.xcbkptlist
+*.xcscmblueprint
+
+# Xcode Project Settings (Keep shared data, ignore user data)
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+
+# Generated Xcode Project (Ignored because we use project.yml)
+# Un-comment the line below if you want to keep the .xcodeproj out of git entirely
+# *.xcodeproj/
+
+# SwiftPM
+.build/
+.swiftpm/xcode/xcuserdata/
+.swiftpm/configuration/
+
+# Logs / Caches
+*.log
+*.tmp
+*.cache
+
+# Environment / Secrets
+.env
+.env.*
+secrets*.json
+
+# Antigravity / Assistant
+.antigravity/
+.gemini/
