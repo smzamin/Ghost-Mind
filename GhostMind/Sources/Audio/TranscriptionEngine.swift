@@ -1,6 +1,8 @@
 import Speech
 import AVFoundation
 import Foundation
+import Combine
+import os.log
 
 // MARK: - TranscriptSegment
 
@@ -147,28 +149,49 @@ final class STTConfiguration: ObservableObject, Codable {
 /// to ensure continuous, gapless audio delivery to the recognizer.
 @MainActor
 final class TranscriptionEngine: ObservableObject {
+    private static let log = Logger(subsystem: "GhostMind", category: "Transcription")
 
     @Published var segments: [TranscriptSegment] = []
     @Published var partialText: String = ""
     @Published var isListening = false
     @Published var permissionGranted = false
-    
+
     let sttConfig = STTConfiguration()
     private var isRestarting = false
     @Published var detectedLanguage: String = "en-US"
+    @Published var autoTranslateToEnglish: Bool = false
+    @Published var isTranslating: Bool = false
     @Published var providerStatusMessage: String?
     private let sttStore: KeyValueStore = UserDefaultsStore(prefix: "ghostmind.stt.")
     private let whisperEngine = WhisperEngine()
+
+    private let maxLiveSegments = 500 // Keep UI snappy
     private let googleEngine = GoogleSTTEngine()
     private var isProcessingExternal = false
 
+    // Silence-based auto-chunking
+    private var silenceTimer: Timer?
+    private let silenceThreshold: TimeInterval = 1.6
 
-    // The recognition request — accessed from any thread (SFSpeech is thread-safe for append)
-    private var micRequest: SFSpeechAudioBufferRecognitionRequest?
+    // Thread-safe container for real-time recognition
+    private final class RecognitionContainer: @unchecked Sendable {
+        private let lock = NSLock()
+        private var _request: SFSpeechAudioBufferRecognitionRequest?
+        var request: SFSpeechAudioBufferRecognitionRequest? {
+            get { lock.lock(); defer { lock.unlock() }; return _request }
+            set { lock.lock(); defer { lock.unlock() }; _request = newValue }
+        }
+    }
+    private let recognitionContainer = RecognitionContainer()
     private var micTask: SFSpeechRecognitionTask?
     private var recognizer: SFSpeechRecognizer?
 
-    var onNewSegment: ((TranscriptSegment) -> Void)?
+    // Combine Publishers
+    private let segmentPublisher = PassthroughSubject<TranscriptSegment, Never>()
+    var segmentsStream: AnyPublisher<TranscriptSegment, Never> { segmentPublisher.eraseToAnyPublisher() }
+
+    private let translationPublisher = PassthroughSubject<TranscriptSegment, Never>()
+    var translationStream: AnyPublisher<TranscriptSegment, Never> { translationPublisher.eraseToAnyPublisher() }
 
     // MARK: - Permissions
 
@@ -192,14 +215,21 @@ final class TranscriptionEngine: ObservableObject {
         providerStatusMessage = nil
         if sttConfig.selectedProvider == .appleOnDevice {
             recognizer = SFSpeechRecognizer(locale: locale)
+
+            if let recognizer, !recognizer.isAvailable {
+                Self.log.error("Recognizer for \(locale.identifier) is currently unavailable (e.g. model needs download).")
+            }
+
             recognizer?.defaultTaskHint = .dictation
+            Self.log.info("Starting Apple On-Device STT (locale: \(locale.identifier))")
             startMicRecognition()
         } else {
+            Self.log.info("Starting external STT provider: \(self.sttConfig.selectedProvider.rawValue)")
             // External providers are fed via handleAudioSegment(_:)
             micTask?.cancel()
             micTask = nil
-            micRequest?.endAudio()
-            micRequest = nil
+            recognitionContainer.request?.endAudio()
+            recognitionContainer.request = nil
             recognizer = nil
             if sttConfig.selectedProvider == .localWhisper {
                 Task { @MainActor in await whisperEngine.checkAvailability(minIntervalSeconds: 0) }
@@ -211,22 +241,15 @@ final class TranscriptionEngine: ObservableObject {
     @MainActor
     func stop() {
         micTask?.finish()
-        micRequest?.endAudio()
-        micRequest = nil
+        recognitionContainer.request?.endAudio()
+        recognitionContainer.request = nil
         isListening = false
         providerStatusMessage = nil
     }
 
-    // MARK: - Feed Audio (called from audio tap — any thread, no actor hop needed)
-    //
-    // SFSpeechAudioBufferRecognitionRequest.append() is thread-safe per Apple docs.
-    // We call it directly without a Task dispatch to avoid timing gaps.
-
-    func feedMicBuffer(_ buffer: AVAudioPCMBuffer) {
-        // Only Apple on-device uses streaming audio buffers directly.
-        if sttConfig.selectedProvider == .appleOnDevice {
-            micRequest?.append(buffer)
-        }
+    nonisolated func feedMicBuffer(_ buffer: AVAudioPCMBuffer) {
+        // We only append if using Apple on-device. This is safe to call from any thread.
+        recognitionContainer.request?.append(buffer)
     }
 
     // MARK: - External provider path (segment-based)
@@ -244,6 +267,8 @@ final class TranscriptionEngine: ObservableObject {
 
         isProcessingExternal = true
         defer { isProcessingExternal = false }
+
+        Self.log.debug("Processing segment for \(provider.rawValue) (data: \(segment.data.count) bytes)")
 
         do {
             let text: String
@@ -279,6 +304,7 @@ final class TranscriptionEngine: ObservableObject {
             }
 
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            Self.log.info("\(provider.rawValue) text: \(trimmed)")
             guard !trimmed.isEmpty else { return }
             finalize(text: trimmed, speaker: .you)
             providerStatusMessage = "Transcribed via \(provider.rawValue)\(model.isEmpty ? "" : " · \(model)")"
@@ -294,40 +320,41 @@ final class TranscriptionEngine: ObservableObject {
     private func startMicRecognition() {
         let req = SFSpeechAudioBufferRecognitionRequest()
         req.shouldReportPartialResults = true
-        if recognizer?.supportsOnDeviceRecognition == true {
-            req.requiresOnDeviceRecognition = true
-        }
-        self.micRequest = req
-
+        req.addsPunctuation = true
+        self.recognitionContainer.request = req
         micTask = recognizer?.recognitionTask(with: req) { [weak self] result, error in
-            DispatchQueue.main.async {
-                guard let self else { return }
-                if let result {
+            guard let self = self else { return }
+
+            // Handle results inside a Task to get back to MainActor properly
+            Task { @MainActor in
+                if let result = result {
                     let text = result.bestTranscription.formattedString
+                    self.resetSilenceTimer(for: text)
+
                     if result.isFinal {
+                        Self.log.info("Apple STT Final Result: \(text)")
                         self.partialText = ""
                         self.finalize(text: text, speaker: .you)
                     } else {
                         self.partialText = "🎤 \(text)"
                     }
                 }
-                if let error {
+
+                if let error = error {
+                    Self.log.error("Apple STT Task error: \(error.localizedDescription)")
                     let code = (error as NSError).code
-                    // Auto-restart on time limit (1110), service disconnected (1101/203/301)
-                    if code == 1110 || code == 203 || code == 301 || code == 1101 {
+                    if [1110, 203, 301, 1101].contains(code) {
                         guard !self.isRestarting else { return }
                         self.isRestarting = true
-                        
+
                         self.micTask?.cancel()
                         self.micTask = nil
-                        self.micRequest?.endAudio()
-                        self.micRequest = nil
-                        
-                        // Add larger delay to let audio session reset preventing 1101 infinite loops
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            self.isRestarting = false
-                            if self.isListening { self.startMicRecognition() }
-                        }
+                        self.recognitionContainer.request?.endAudio()
+                        self.recognitionContainer.request = nil
+
+                        try? await Task.sleep(nanoseconds: 500_000_000)
+                        self.isRestarting = false
+                        if self.isListening { self.startMicRecognition() }
                     }
                 }
             }
@@ -337,9 +364,63 @@ final class TranscriptionEngine: ObservableObject {
     private func finalize(text: String, speaker: TranscriptSegment.Speaker) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        let segment = TranscriptSegment(id: UUID(), speaker: speaker, text: trimmed, timestamp: Date(), isFinal: true)
-        segments.append(segment)
-        onNewSegment?(segment)
-        NotificationCenter.default.post(name: .newTranscriptSegment, object: segment)
+
+        if autoTranslateToEnglish {
+            // translation is async but finalize is sync; use a Task to handle it
+            Task {
+                await translateAndAppend(text: trimmed, speaker: speaker)
+            }
+        } else {
+            appendSegment(text: trimmed, speaker: speaker)
+        }
     }
+
+    private func translateAndAppend(text: String, speaker: TranscriptSegment.Speaker) async {
+        let segment = TranscriptSegment(id: UUID(), speaker: speaker, text: text, timestamp: Date(), isFinal: true)
+        translationPublisher.send(segment)
+    }
+
+    func appendSegment(text: String, speaker: TranscriptSegment.Speaker) {
+        let segment = TranscriptSegment(id: UUID(), speaker: speaker, text: text, timestamp: Date(), isFinal: true)
+
+        // Prune live display if too many segments
+        if segments.count >= maxLiveSegments {
+            segments.removeFirst()
+        }
+
+        segments.append(segment)
+        segmentPublisher.send(segment)
+    }
+
+    private func resetSilenceTimer(for text: String) {
+        silenceTimer?.invalidate()
+        guard !text.isEmpty else { return }
+
+        silenceTimer = Timer.scheduledTimer(withTimeInterval: silenceThreshold, repeats: false) { [weak self] _ in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                // If we have silence for X seconds, finalize the current partial text manually
+                if !self.partialText.isEmpty {
+                    let clean = self.partialText.replacingOccurrences(of: "🎤 ", with: "")
+                    if !clean.isEmpty {
+                        Self.log.info("Silence detected. Auto-finalizing segment.")
+                        self.finalize(text: clean, speaker: .you)
+                        self.partialText = ""
+
+                        // Restart the STT task to ensure we start fresh on the next word
+                        // (Prevents Apple from repeating the old text in the next partial result)
+                        self.micTask?.cancel()
+                        self.micTask = nil
+                        self.recognitionContainer.request?.endAudio()
+                        self.recognitionContainer.request = nil
+                        if self.isListening { self.startMicRecognition() }
+                    }
+                }
+            }
+        }
+    }
+}
+
+extension NSNotification.Name {
+    static let audioTranslationNeeded = NSNotification.Name("audioTranslationNeeded")
 }

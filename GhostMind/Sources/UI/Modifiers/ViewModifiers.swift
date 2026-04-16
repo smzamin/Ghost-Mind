@@ -119,6 +119,14 @@ struct ShimmerModifier: ViewModifier {
 
 extension View {
     func shimmer() -> some View { modifier(ShimmerModifier()) }
+    
+    /// Adds a platform-native mouse cursor on hover (macOS)
+    func cursor(_ cursor: NSCursor) -> some View {
+        self.onHover { inside in
+            if inside { cursor.push() }
+            else { NSCursor.pop() }
+        }
+    }
 }
 
 // MARK: - UIBezierPath macOS shim

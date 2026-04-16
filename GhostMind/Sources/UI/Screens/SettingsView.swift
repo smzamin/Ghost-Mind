@@ -794,7 +794,8 @@ struct ContextDocumentsView: View {
                 name: $manualName,
                 content: $manualContent,
                 onSave: {
-                    let doc = ContextDocument(name: manualName, rawContent: manualContent)
+                    var doc = ContextDocument(name: manualName, rawContent: manualContent)
+                    doc.sections = ContextDocument.parseSectionsSync(from: manualContent)
                     state.contextDocuments.append(doc)
                     manualName = ""; manualContent = ""
                     showManualAdd = false
@@ -823,8 +824,11 @@ struct ContextDocumentsView: View {
                 defer { url.stopAccessingSecurityScopedResource() }
                 if let content = try? String(contentsOf: url, encoding: .utf8) {
                     let name = url.deletingPathExtension().lastPathComponent
-                    let doc = ContextDocument(name: name, rawContent: content)
-                    state.contextDocuments.append(doc)
+                    Task { @MainActor in
+                        var doc = ContextDocument(name: name, rawContent: content)
+                        doc.sections = await ContextDocument.parseSections(from: content)
+                        state.contextDocuments.append(doc)
+                    }
                 }
             }
         case .failure(let err):
@@ -947,7 +951,7 @@ struct ManualDocumentSheet: View {
     let onSave: () -> Void
     let onCancel: () -> Void
 
-    var parsedSectionCount: Int { ContextDocument.parseSections(from: content).count }
+    var parsedSectionCount: Int { ContextDocument.parseSectionsSync(from: content).count }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

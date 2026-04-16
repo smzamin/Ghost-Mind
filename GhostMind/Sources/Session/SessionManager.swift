@@ -78,6 +78,17 @@ final class SessionManager: ObservableObject {
         save(session: session)
     }
 
+    func deleteSession(_ session: MeetingSession) {
+        let url = storageURL.appendingPathComponent("\(session.id.uuidString).json")
+        try? FileManager.default.removeItem(at: url)
+        savedSessions.removeAll(where: { $0.id == session.id })
+    }
+
+    func summarizeSession(_ session: MeetingSession, aiClient: AIClient) async -> String? {
+        let prompt = "Please summarize this meeting session. Focus on key takeaways and action items.\n\n" + exportMarkdown(session: session)
+        return await aiClient.queryForBackground(prompt: prompt)
+    }
+
     // MARK: - Export
 
     func exportMarkdown(session: MeetingSession) -> String {

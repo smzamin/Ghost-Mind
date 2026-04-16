@@ -17,6 +17,7 @@ struct QuickActionBar: View {
         Action(label: "What should I say?",  icon: "bubble.left.fill",      color: .blue,    aiAction: .whatToSay),
         Action(label: "Follow-ups",          icon: "arrow.triangle.branch", color: .teal,    aiAction: .followUp),
         Action(label: "Recap",               icon: "clock.arrow.circlepath",color: .orange,  aiAction: .recap),
+        Action(label: "Translate",           icon: "character.bubble",      color: .pink,    aiAction: .translate),
     ]
 
     var body: some View {
@@ -33,6 +34,7 @@ struct QuickActionBar: View {
                     case .whatToSay: prompt = state.selectedText.isEmpty ? "What should I say next?" : "How should I respond to: \(state.selectedText)"
                     case .followUp:  prompt = "Given this conversation, what follow-up questions will come next?"
                     case .recap:     prompt = "Please summarize the conversation so far."
+                    case .translate: prompt = state.selectedText.isEmpty ? "Translate our conversation so far." : "Translate: \(state.selectedText)"
                     }
                     Task {
                         await state.aiClient.query(

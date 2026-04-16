@@ -4,18 +4,12 @@ import SwiftUI
 
 struct TranscriptPanel: View {
     @EnvironmentObject var state: AppState
+    
     @ObservedObject var transcriptionEngine: TranscriptionEngine
     @ObservedObject var audioManager: AudioCaptureManager
-
-    init() {
-        // Placeholder — real values injected from environmentObject in body
-        _transcriptionEngine = ObservedObject(wrappedValue: TranscriptionEngine())
-        _audioManager        = ObservedObject(wrappedValue: AudioCaptureManager())
-    }
-
-    // Use state's engines directly for proper @ObservedObject reactivity
-    var segments: [TranscriptSegment] { state.transcriptionEngine.segments }
-    var partial:  String              { state.transcriptionEngine.partialText }
+    
+    private var segments: [TranscriptSegment] { transcriptionEngine.segments }
+    private var partial:  String              { transcriptionEngine.partialText }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,23 +22,23 @@ struct TranscriptPanel: View {
                 Spacer()
 
                 // Level meters
-                AudioLevelMeter(level: state.audioManager.micLevel,    color: .green, icon: "mic.fill")
-                AudioLevelMeter(level: state.audioManager.systemLevel, color: .blue,  icon: "speaker.wave.2.fill")
+                AudioLevelMeter(level: audioManager.micLevel,    color: .green, icon: "mic.fill")
+                AudioLevelMeter(level: audioManager.systemLevel, color: .blue,  icon: "speaker.wave.2.fill")
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
 
             // ── STT Status bar ────────────────────────────────────────────────
             STTStatusBar(
-                audioManager: state.audioManager,
-                transcriptionEngine: state.transcriptionEngine
+                audioManager: audioManager,
+                transcriptionEngine: transcriptionEngine
             )
 
             Divider().opacity(0.1)
 
             // ── Transcript rows ───────────────────────────────────────────────
             if segments.isEmpty && partial.isEmpty {
-                TranscriptEmptyState(audioManager: state.audioManager)
+                TranscriptEmptyState(audioManager: audioManager)
             } else {
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -52,17 +46,17 @@ struct TranscriptPanel: View {
                             ForEach(segments) { seg in
                                 TranscriptRow(segment: seg)
                                     .id(seg.id)
-                                    .onTapGesture { state.selectedText = seg.text }
                             }
 
                             // Partial text (live in-progress)
                             if !partial.isEmpty {
                                 Text(partial)
-                                    .font(.system(size: 12, design: .rounded))
-                                    .foregroundStyle(.white.opacity(0.45))
-                                    .italic()
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.green.opacity(0.9)) // Bright green to confirm visibility
                                     .padding(.horizontal, 14)
-                                    .padding(.vertical, 4)
+                                    .padding(.vertical, 6)
+                                    .background(Color.green.opacity(0.05))
+                                    .textSelection(.enabled)
                                     .id("partial")
                             }
                         }
@@ -125,6 +119,15 @@ struct STTStatusBar: View {
                 .foregroundStyle(statusColor)
                 .lineLimit(1)
             Spacer()
+            
+            Toggle("Translate to English", isOn: $transcriptionEngine.autoTranslateToEnglish)
+                .toggleStyle(.checkbox) // Custom or standard
+                .labelsHidden()
+                .help("Listen in any language, type in English")
+            Text("EN")
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(transcriptionEngine.autoTranslateToEnglish ? .green : .secondary)
+            
             if !transcriptionEngine.permissionGranted && audioManager.isCapturing {
                 Text("No STT permission")
                     .font(.system(size: 10))
@@ -195,6 +198,7 @@ struct TranscriptRow: View {
             Text(segment.text)
                 .font(.system(size: 12.5, design: .rounded))
                 .foregroundStyle(.white.opacity(0.88))
+                .textSelection(.enabled) // Enable native macOS text selection
                 .fixedSize(horizontal: false, vertical: true)
                 
             // Quick Actions (only visible on hover)
@@ -202,6 +206,15 @@ struct TranscriptRow: View {
                 HStack(spacing: 8) {
                     TranscriptHoverAction(icon: "sparkles", title: "Ask AI") {
                         state.selectedText = segment.text
+                        // Auto-trigger the AI query
+                        Task {
+                            await state.aiClient.query(
+                                prompt: segment.text,
+                                action: .assist,
+                                transcript: state.transcriptionEngine.segments,
+                                contextDocuments: [state.activeContext].filter { !$0.isEmpty }
+                            )
+                        }
                     }
                     TranscriptHoverAction(icon: "bubble.left.and.exclamationmark.bubble.right", title: "What to say") {
                         state.selectedText = "What should I say to this:\n\n\"\(segment.text)\""

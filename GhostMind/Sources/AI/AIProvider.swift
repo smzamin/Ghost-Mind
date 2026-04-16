@@ -74,6 +74,7 @@ enum AIAction: String, CaseIterable {
     case whatToSay = "What should I say?"
     case followUp = "Follow-up questions"
     case recap = "Recap"
+    case translate = "Translate"
 
     var systemPrompt: String {
         switch self {
@@ -103,6 +104,13 @@ enum AIAction: String, CaseIterable {
             You are a meeting scribe. Summarize the conversation so far in concise bullet points. \
             Group by topic. Highlight key decisions, action items, and open questions. \
             Use markdown.
+            """
+        case .translate:
+            return """
+            You are a professional real-time translator. \
+            Translate the user's input to clear, natural English. \
+            Only return the translated text. Do not add any preamble, explanations, or quotes. \
+            If the input is already in English, return it exactly as is.
             """
         }
     }

@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 // MARK: - Context Document (with parsed sections)
 
@@ -15,12 +16,19 @@ struct ContextDocument: Identifiable, Codable {
         self.name = name
         self.rawContent = rawContent
         self.isActive = true
-        self.sections = ContextDocument.parseSections(from: rawContent)
+        self.sections = [] 
+        // Parsing is now handled asynchronously by AppState
     }
 
     /// Parse markdown headings into named sections.
     /// Only sections WITH a heading are returned — headingless content is ignored per user spec.
-    static func parseSections(from content: String) -> [ContextSection] {
+    static func parseSections(from content: String) async -> [ContextSection] {
+        return await Task.detached(priority: .userInitiated) {
+            parseSectionsSync(from: content)
+        }.value
+    }
+
+    static func parseSectionsSync(from content: String) -> [ContextSection] {
         var sections: [ContextSection] = []
         var currentHeading: String? = nil
         var currentLines: [String] = []
@@ -85,21 +93,26 @@ final class AppState: ObservableObject {
     let keyManager          = ProviderKeyManager()
     let queueManager        = RequestQueueManager()
 
-    @Published var showTranscript: Bool = UserDefaults.standard.object(forKey: "showTranscript") as? Bool ?? true {
-        didSet { UserDefaults.standard.set(showTranscript, forKey: "showTranscript") }
+    @Published var showTranscript: Bool = true {
+        didSet { UserDefaults.standard.set(showTranscript, forKey: Constants.UserDefaults.showTranscript) }
     }
     @Published var isCollapsed    = false
-    @Published var opacity: Double = UserDefaults.standard.object(forKey: "opacity") as? Double ?? 1.0 {
-        didSet { UserDefaults.standard.set(opacity, forKey: "opacity") }
+    @Published var opacity: Double = 1.0 {
+        didSet { UserDefaults.standard.set(opacity, forKey: Constants.UserDefaults.opacity) }
     }
-    @Published var interviewMode: InterviewMode = InterviewMode(rawValue: UserDefaults.standard.string(forKey: "interviewMode") ?? "") ?? .technical {
+    @Published var interviewMode: InterviewMode = .technical {
         didSet {
-            UserDefaults.standard.set(interviewMode.rawValue, forKey: "interviewMode")
+            UserDefaults.standard.set(interviewMode.rawValue, forKey: Constants.UserDefaults.interviewMode)
             aiClient.activeMode = interviewMode.rawValue
         }
     }
     @Published var contextDocuments: [ContextDocument] = []
     @Published var selectedText: String = ""
+    @Published var isStealth: Bool = false
+    @Published var showHistory: Bool = false
+    @Published var transcriptWidth: CGFloat = 380 {
+        didSet { UserDefaults.standard.set(transcriptWidth, forKey: Constants.UserDefaults.transcriptWidth) }
+    }
 
     enum InterviewMode: String, CaseIterable {
         case technical = "Technical"
@@ -116,8 +129,21 @@ final class AppState: ObservableObject {
     }
 
     init() {
+        // Load initial state
+        self.showTranscript = UserDefaults.standard.bool(forKey: Constants.UserDefaults.showTranscript)
+        self.opacity = UserDefaults.standard.double(forKey: Constants.UserDefaults.opacity) == 0 ? 1.0 : UserDefaults.standard.double(forKey: Constants.UserDefaults.opacity)
+        self.transcriptWidth = UserDefaults.standard.object(forKey: Constants.UserDefaults.transcriptWidth) as? CGFloat ?? 380
+        if let modeStr = UserDefaults.standard.string(forKey: Constants.UserDefaults.interviewMode),
+           let mode = InterviewMode(rawValue: modeStr) {
+            self.interviewMode = mode
+        }
+
         // ── Wire key rotation manager into AI client ──────────────────────────
         aiClient.keyManager = keyManager
+
+        aiClient.onMessageAdded = { [weak self] msg in
+            self?.sessionManager.addChatMessage(msg)
+        }
 
         // ── Wire queue manager ────────────────────────────────────────
         queueManager.aiClient = aiClient
@@ -126,6 +152,7 @@ final class AppState: ObservableObject {
                 guard let self else { return }
                 let msg = ChatMessage(id: UUID(), role: .assistant, content: response, timestamp: Date())
                 self.aiClient.messages.append(msg)
+                self.sessionManager.addChatMessage(msg)
             }
         }
 
@@ -142,13 +169,28 @@ final class AppState: ObservableObject {
             }
         }
 
+        // ── Real-time Translation Handler ───────────────────────────────────
+        transcriptionEngine.translationStream
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] segment in
+                guard let self else { return }
+                Task {
+                    let translatedText = await self.translateToEnglish(segment.text)
+                    self.transcriptionEngine.appendSegment(text: translatedText, speaker: segment.speaker)
+                }
+            }
+            .store(in: &cancellables)
+
         // ── Wire transcript → session ─────────────────────────────────────────
-        transcriptionEngine.onNewSegment = { [weak self] segment in
-            Task { @MainActor in self?.sessionManager.addTranscriptSegment(segment) }
-        }
+        transcriptionEngine.segmentsStream
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] segment in
+                self?.sessionManager.addTranscriptSegment(segment)
+            }
+            .store(in: &cancellables)
 
         // ── Global shortcut observers ─────────────────────────────────────────
-        NotificationCenter.default.addObserver(forName: .instantAssist, object: nil, queue: .main) { [weak self] _ in
+        NotificationCenter.default.addObserver(forName: Constants.Notification.instantAssist, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
                 let prompt = self.transcriptionEngine.segments.last(where: { $0.speaker == .interviewer })?.text
@@ -161,11 +203,11 @@ final class AppState: ObservableObject {
             }
         }
 
-        NotificationCenter.default.addObserver(forName: .toggleTranscript, object: nil, queue: .main) { [weak self] _ in
+        NotificationCenter.default.addObserver(forName: Constants.Notification.toggleTranscript, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.showTranscript.toggle() }
         }
 
-        NotificationCenter.default.addObserver(forName: .readScreen, object: nil, queue: .main) { [weak self] _ in
+        NotificationCenter.default.addObserver(forName: Constants.Notification.readScreen, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
                 if let result = await self.screenReader.captureOnce(), !result.text.isEmpty {
@@ -184,7 +226,7 @@ final class AppState: ObservableObject {
     func startSession() async {
         await transcriptionEngine.requestPermissions()
         await audioManager.startCapture()
-        transcriptionEngine.start()
+        transcriptionEngine.start(locale: Locale(identifier: transcriptionEngine.detectedLanguage))
         sessionManager.startSession()
     }
 
@@ -193,6 +235,14 @@ final class AppState: ObservableObject {
         transcriptionEngine.stop()
         sessionManager.endSession()
     }
+
+    private func translateToEnglish(_ text: String) async -> String {
+        let prompt = "Translate the following audio transcript to English. Only return the translated text. If it is already in English, return it as is:\n\n\"\(text)\""
+        let result = await aiClient.queryForBackground(prompt: prompt)
+        return result ?? text
+    }
+    
+    private var cancellables = Set<AnyCancellable>()
 }
 
 // MARK: - MainOverlayView
@@ -200,11 +250,13 @@ final class AppState: ObservableObject {
 struct MainOverlayView: View {
     @StateObject private var state = AppState()
     @State private var showSettings = false
+    @State private var dragStartingWidth: CGFloat = 380
 
     var body: some View {
         ZStack(alignment: .top) {
-            // ── 100% solid black background ───────────────────────────────────
+            // ── Background ────────────────────────────────────────────────────
             Color.black
+                .opacity(1.0)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
             VStack(spacing: 0) {
@@ -216,13 +268,40 @@ struct MainOverlayView: View {
 
                     HStack(spacing: 0) {
                         if state.showTranscript {
-                            TranscriptPanel()
+                            TranscriptPanel(
+                                transcriptionEngine: state.transcriptionEngine,
+                                audioManager: state.audioManager
+                            )
                                 .environmentObject(state)
-                                .frame(width: 260)
+                                .frame(width: state.transcriptWidth)
                                 .transition(.move(edge: .leading).combined(with: .opacity))
-                        }
-                        if state.showTranscript {
-                            Rectangle().fill(Color.white.opacity(0.07)).frame(width: 1)
+
+                            // ── Draggable Divider ──────────────────────────────
+                            Rectangle()
+                                .fill(Color.white.opacity(0.12))
+                                .frame(width: 4)
+                                .padding(.horizontal, 4)
+                                .contentShape(Rectangle())
+                                .cursor(.resizeLeftRight)
+                                .highPriorityGesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            // Capture start width on first frame of drag
+                                            if value.translation.width == value.location.x - value.startLocation.x {
+                                                // (Approximation for 'first frame if needed, but easier to just use a local state)
+                                            }
+                                            let newWidth = dragStartingWidth + value.translation.width
+                                            state.transcriptWidth = max(380, min(680, newWidth))
+                                        }
+                                        .onEnded { _ in
+                                            // Persist to disk ONLY on release for performance
+                                            dragStartingWidth = state.transcriptWidth
+                                            UserDefaults.standard.set(state.transcriptWidth, forKey: "transcriptWidth")
+                                        }
+                                )
+                                .onAppear {
+                                    dragStartingWidth = state.transcriptWidth
+                                }
                         }
                         AIChatPanel(aiClient: state.aiClient, queueManager: state.queueManager)
                             .environmentObject(state)
@@ -250,9 +329,9 @@ struct MainOverlayView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                .strokeBorder(Color.white.opacity(state.isStealth ? 0.02 : 0.08), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.7), radius: 30, y: 12)
+        .shadow(color: .black.opacity(state.isStealth ? 0 : 0.7), radius: 30, y: 12)
         .opacity(state.opacity)
         .animation(.easeInOut(duration: 0.22), value: state.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: state.showTranscript)
@@ -260,11 +339,15 @@ struct MainOverlayView: View {
         .onChange(of: state.isCollapsed) { collapsed in
             // Dispatch async so SwiftUI layout finishes before window resize
             DispatchQueue.main.async {
-                NotificationCenter.default.post(name: .collapseStateChanged, object: collapsed)
+                NotificationCenter.default.post(name: Constants.Notification.collapseStateChanged, object: collapsed)
             }
         }
         .sheet(isPresented: $showSettings) {
             SettingsView()
+                .environmentObject(state)
+        }
+        .sheet(isPresented: $state.showHistory) {
+            SessionHistoryView()
                 .environmentObject(state)
         }
         .overlay(alignment: .top) {

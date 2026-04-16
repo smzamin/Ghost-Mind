@@ -2,24 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Audio Input -->
-	<key>com.apple.security.device.audio-input</key>
-	<true/>
-
-	<!-- Screen Recording (for ScreenCaptureKit system audio) -->
 	<key>com.apple.security.screen-capture</key>
 	<true/>
-
-	<!-- Speech Recognition -->
 	<key>com.apple.security.speech.recognition</key>
-	<true/>
-
-	<!-- Network access for API calls -->
-	<key>com.apple.security.network.client</key>
-	<true/>
-
-	<!-- Read user-selected files (for context document upload) -->
-	<key>com.apple.security.files.user-selected.read-only</key>
 	<true/>
 </dict>
 </plist>

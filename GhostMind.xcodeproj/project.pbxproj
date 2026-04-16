@@ -29,6 +29,10 @@
 		CE01EE8D3257FFCCAE60A2F2 /* SessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E850B10DAC0C728B00B4BB /* SessionHistoryView.swift */; };
 		CE6F836861B9BA27F96817DC /* ProviderKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E94218286F2B2E59B94720 /* ProviderKeyManager.swift */; };
 		D5AA73259DBBCC7EC40B5D40 /* MainOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629E4EDB2F633CD34BBF4A6E /* MainOverlayView.swift */; };
+		D5C4CDB2EB2B5F11AD637C21 /* Persist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FCF0F8CA6D43F514C507C1 /* Persist.swift */; };
+		D5C4CDB2EB2B5F11AD637C22 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FCF0F8CA6D43F514C507C2 /* Constants.swift */; };
+		D5C4CDB2EB2B5F11AD637D21 /* ContextDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FCF0F8CA6D43F514C507D1 /* ContextDocumentTests.swift */; };
+		D5C4CDB2EB2B5F11AD637D22 /* AIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FCF0F8CA6D43F514C507D2 /* AIClientTests.swift */; };
 		D5C4CDB2EB2B5F11AD637F47 /* AIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FCF0F8CA6D43F514C507B3 /* AIClient.swift */; };
 		DA9BBEB12F6609387566073F /* StealthWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2214D7EF4B622410A334E726 /* StealthWindowController.swift */; };
 		FFE62C034AC29F9E960CD3C7 /* WhisperEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788C9B8E55CEC0D881D544C9 /* WhisperEngine.swift */; };
@@ -52,6 +56,10 @@
 		22080BC062B1AE22CB2F4756 /* QuickActionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionBar.swift; sourceTree = "<group>"; };
 		2214D7EF4B622410A334E726 /* StealthWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StealthWindowController.swift; sourceTree = "<group>"; };
 		25FCF0F8CA6D43F514C507B3 /* AIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIClient.swift; sourceTree = "<group>"; };
+		25FCF0F8CA6D43F514C507C1 /* Persist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persist.swift; sourceTree = "<group>"; };
+		25FCF0F8CA6D43F514C507C2 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		25FCF0F8CA6D43F514C507D1 /* ContextDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextDocumentTests.swift; sourceTree = "<group>"; };
+		25FCF0F8CA6D43F514C507D2 /* AIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIClientTests.swift; sourceTree = "<group>"; };
 		2A75F5A9670765185CE83DC1 /* TranscriptionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionEngine.swift; sourceTree = "<group>"; };
 		3452F310294C96C510E7011D /* GoogleSTTEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleSTTEngine.swift; sourceTree = "<group>"; };
 		409CDE4CCE63DE9601CF652D /* GhostMindTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GhostMindTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -111,6 +119,8 @@
 			children = (
 				0CD25C1764C4CA097877CEF9 /* MarkdownRenderer.swift */,
 				05AFA21A4D345D9F65321EC9 /* ScreenReaderEngine.swift */,
+				25FCF0F8CA6D43F514C507C1 /* Persist.swift */,
+				25FCF0F8CA6D43F514C507C2 /* Constants.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -181,6 +191,8 @@
 			isa = PBXGroup;
 			children = (
 				92C169CB1399E284DF5197E9 /* GhostMindTests.swift */,
+				25FCF0F8CA6D43F514C507D1 /* ContextDocumentTests.swift */,
+				25FCF0F8CA6D43F514C507D2 /* AIClientTests.swift */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -269,7 +281,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					EFA8ECCCC49D8888E702813D = {
 						DevelopmentTeam = "";
@@ -301,6 +313,8 @@
 			files = (
 				5863DAB075FA4A8A5D5F54FE /* AIChatPanel.swift in Sources */,
 				D5C4CDB2EB2B5F11AD637F47 /* AIClient.swift in Sources */,
+				D5C4CDB2EB2B5F11AD637C21 /* Persist.swift in Sources */,
+				D5C4CDB2EB2B5F11AD637C22 /* Constants.swift in Sources */,
 				C411A14108DF15FEE838132B /* AIProvider.swift in Sources */,
 				C97350C9A1659114ACBBE6ED /* AudioCaptureManager.swift in Sources */,
 				C638721376608505F0C8FA1C /* ControlBar.swift in Sources */,
@@ -329,6 +343,8 @@
 			isa = PBXSourcesBuildPhase;
 			files = (
 				091DD5F6C61D46F154B4353E /* GhostMindTests.swift in Sources */,
+				D5C4CDB2EB2B5F11AD637D21 /* ContextDocumentTests.swift in Sources */,
+				D5C4CDB2EB2B5F11AD637D22 /* AIClientTests.swift in Sources */,
 			);
 		};
 /* End PBXSourcesBuildPhase section */
@@ -347,6 +363,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -362,7 +379,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -397,11 +413,13 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				EXCLUDED_ARCHS = x86_64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -421,6 +439,7 @@
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -433,7 +452,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -468,11 +486,13 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				EXCLUDED_ARCHS = x86_64;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -497,6 +517,7 @@
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_STRICT_CONCURRENCY = targeted;
@@ -510,6 +531,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -532,7 +554,14 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = GhostMind/Assets.xcassets;
 				DEVELOPMENT_TEAM = 79ZT3BFA64;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				INFOPLIST_FILE = GhostMind/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ghost Mind";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -557,7 +586,14 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = GhostMind/Assets.xcassets;
 				DEVELOPMENT_TEAM = 79ZT3BFA64;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
 				INFOPLIST_FILE = GhostMind/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ghost Mind";
 				LD_RUNPATH_SEARCH_PATHS = (

@@ -44,3 +44,5 @@ secrets*.json
 # Antigravity / Assistant
 .antigravity/
 .gemini/
+node_modules
+venv

@@ -61,7 +61,7 @@ final class AudioCaptureManager: NSObject, ObservableObject {
 
     // MARK: Buffer accumulation state (Thread-safe)
     private let bufferQueue = DispatchQueue(label: "com.ghostmind.audio.buffers")
-    
+
     // Internal state moved to a class to allow non-isolated access via synchronization
     private class AccumulatorState: @unchecked Sendable {
         var micBuffer = Data()
@@ -70,7 +70,7 @@ final class AudioCaptureManager: NSObject, ObservableObject {
         var sysBufferStart = Date()
     }
     nonisolated private let accState = AccumulatorState()
-    
+
     private var lastMicLevelUpdate = Date.distantPast
     private var lastSysLevelUpdate = Date.distantPast
     private let bufferDuration: TimeInterval = 0.5
@@ -159,47 +159,93 @@ final class AudioCaptureManager: NSObject, ObservableObject {
     // MARK: - Microphone (AVAudioEngine)
 
     private func startMicCapture() throws {
-        // Always remove existing tap first to avoid "already installed" crash
-        audioEngine.inputNode.removeTap(onBus: 0)
+        Self.log.info("Initializing AVAudioEngine...")
+
+        // Deep reset of the engine to clear any stale HAL thread states
+        if audioEngine.isRunning {
+             audioEngine.stop()
+        }
+        audioEngine.reset()
 
         let inputNode = audioEngine.inputNode
-        let format = inputNode.inputFormat(forBus: 0)
-        micFormat = format
+        inputNode.removeTap(onBus: 0)
 
-        // Validate format — prevent crash on virtual devices with 0-channel formats
-        guard format.channelCount > 0, format.sampleRate > 0 else {
-            throw AudioError.invalidFormat("Input format has \(format.channelCount) channels @ \(format.sampleRate)Hz")
-        }
+        // Force disable voice processing to avoid previous aggregate device errors (-10875)
+        try? inputNode.setVoiceProcessingEnabled(false)
 
-        Self.log.info("Installing mic tap: \(format.channelCount)ch @ \(format.sampleRate)Hz")
+        let hardwareFormat = inputNode.inputFormat(forBus: 0)
+        let sampleRate = hardwareFormat.sampleRate > 0 ? hardwareFormat.sampleRate : 48000
 
-        inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, _ in
+        // Use mono tap. Smaller buffer (1024) reduces processing spikes.
+        let tapFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32,
+                                     sampleRate: sampleRate,
+                                     channels: 1,
+                                     interleaved: false)!
+        micFormat = tapFormat
+
+        Self.log.info("Installing mic tap: Mono @ \(sampleRate)Hz (Hardware: \(hardwareFormat.channelCount)ch)")
+
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: tapFormat) { [weak self] buffer, _ in
             guard let self else { return }
 
-            // ── Level meter (throttled to 20Hz) ──
-            let now = Date()
-            if now.timeIntervalSince(self.lastMicLevelUpdate) > 0.05 {
-                let lvl = self.rmsLevel(buffer: buffer)
-                DispatchQueue.main.async {
-                    self.micLevel = lvl
-                    self.lastMicLevelUpdate = now
-                }
-            }
-
-            // ── DIRECT callback to STT — NO Task hop ──
+            // ── PASS TO APPLE STT ──
             self.onMicBuffer?(buffer)
 
-            // ── Whisper/segment accumulation (Off-main-thread) ──
-            if let data = self.pcmToData(buffer) {
-                self.bufferQueue.async {
-                    self.accumulateMic(data: data)
-                }
+            // ── ASYNC PROCESSING ──
+            let frameCount = Int(buffer.frameLength)
+            guard frameCount > 0, let channelData = buffer.floatChannelData?[0] else { return }
+            let rawData = Data(bytes: channelData, count: frameCount * MemoryLayout<Float>.size)
+
+            self.bufferQueue.async {
+                self.processMicBufferAsync(rawFloats: rawData, frameCount: frameCount)
             }
         }
 
-        // Prepare before start to catch format/device errors early
+        // CRITICAL: Connect the main mixer to the output node.
+        // On many macOS systems, the engine won't start its clock/tap without an output path.
+        audioEngine.connect(audioEngine.mainMixerNode, to: audioEngine.outputNode, format: nil)
+
+        Self.log.info("Preparing and starting AVAudioEngine...")
         audioEngine.prepare()
         try audioEngine.start()
+        Self.log.info("AVAudioEngine started successfully")
+    }
+
+    private func processMicBufferAsync(rawFloats: Data, frameCount: Int) {
+        let now = Date()
+        rawFloats.withUnsafeBytes { ptr in
+            guard let floats = ptr.bindMemory(to: Float.self).baseAddress else { return }
+
+            // 1. Level Metering (Throttled)
+            var shouldUpdateLevel = false
+            objc_sync_enter(self.accState)
+            if now.timeIntervalSince(self.lastMicLevelUpdate) > 0.05 {
+                shouldUpdateLevel = true
+                self.lastMicLevelUpdate = now
+            }
+            objc_sync_exit(self.accState)
+
+            if shouldUpdateLevel {
+                var sum: Float = 0
+                for i in 0..<frameCount { sum += floats[i] * floats[i] }
+                let rms = sqrt(sum / Float(frameCount))
+                let lvl = min(rms * 12, 1.0)
+                DispatchQueue.main.async { [weak self] in self?.micLevel = lvl }
+            }
+
+            // 2. Convert to LINEAR16
+            var outData = Data(count: frameCount * 2)
+            outData.withUnsafeMutableBytes { outPtr in
+                guard let i16 = outPtr.bindMemory(to: Int16.self).baseAddress else { return }
+                for i in 0..<frameCount {
+                    let clamped = max(-1.0, min(1.0, floats[i]))
+                    i16[i] = Int16(clamped * Float(Int16.max))
+                }
+            }
+
+            // 3. Accumulate (Sync since we are on bufferQueue)
+            self.performMicAccumulation(data: outData)
+        }
     }
 
     // MARK: - System Audio (ScreenCaptureKit)
@@ -222,7 +268,7 @@ final class AudioCaptureManager: NSObject, ObservableObject {
 
         let output = SCKAudioOutput { [weak self] data in
             guard let self else { return }
-            
+
             // Level meter throttled
             let now = Date()
             if now.timeIntervalSince(self.lastSysLevelUpdate) > 0.1 {
@@ -232,9 +278,9 @@ final class AudioCaptureManager: NSObject, ObservableObject {
                     self.lastSysLevelUpdate = now
                 }
             }
-            
+
             self.bufferQueue.async {
-                self.accumulateSys(data: data)
+                self.performSysAccumulation(data: data)
             }
         }
 
@@ -252,64 +298,54 @@ final class AudioCaptureManager: NSObject, ObservableObject {
 
     // MARK: - Buffer Accumulation (Thread-safe on bufferQueue)
 
-    nonisolated private func accumulateMic(data: Data) {
-        bufferQueue.async {
-            let now = Date()
-            var segmentToEmit: AudioSegment?
-            
-            // Local sync block for the shared state
-            objc_sync_enter(self.accState)
-            self.accState.micBuffer.append(data)
-            if now.timeIntervalSince(self.accState.micBufferStart) >= self.bufferDuration {
-                segmentToEmit = AudioSegment(
-                    data: self.accState.micBuffer,
-                    source: .microphone,
-                    timestamp: self.accState.micBufferStart,
-                    sampleRate: 48000, // standard for most Mac mics
-                    channelCount: 1
-                )
-                self.accState.micBuffer = Data()
-                self.accState.micBufferStart = now
-            }
-            objc_sync_exit(self.accState)
-            
-            if let segment = segmentToEmit {
-                DispatchQueue.main.async {
-                    // Back to main actor for the final callback
-                    MainActor.assumeIsolated {
-                        self.onAudioSegment?(segment)
-                    }
-                }
+    private func performMicAccumulation(data: Data) {
+        let now = Date()
+        var segmentToEmit: AudioSegment?
+
+        objc_sync_enter(self.accState)
+        self.accState.micBuffer.append(data)
+        if now.timeIntervalSince(self.accState.micBufferStart) >= self.bufferDuration {
+            segmentToEmit = AudioSegment(
+                data: self.accState.micBuffer,
+                source: .microphone,
+                timestamp: self.accState.micBufferStart,
+                sampleRate: 48000,
+                channelCount: 1
+            )
+            self.accState.micBuffer = Data()
+            self.accState.micBufferStart = now
+        }
+        objc_sync_exit(self.accState)
+
+        if let segment = segmentToEmit {
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self.onAudioSegment?(segment) }
             }
         }
     }
 
-    nonisolated private func accumulateSys(data: Data) {
-        bufferQueue.async {
-            let now = Date()
-            var segmentToEmit: AudioSegment?
-            
-            objc_sync_enter(self.accState)
-            self.accState.sysBuffer.append(data)
-            if now.timeIntervalSince(self.accState.sysBufferStart) >= self.bufferDuration {
-                segmentToEmit = AudioSegment(
-                    data: self.accState.sysBuffer,
-                    source: .systemAudio,
-                    timestamp: self.accState.sysBufferStart,
-                    sampleRate: 44100,
-                    channelCount: 2
-                )
-                self.accState.sysBuffer = Data()
-                self.accState.sysBufferStart = now
-            }
-            objc_sync_exit(self.accState)
-            
-            if let segment = segmentToEmit {
-                DispatchQueue.main.async {
-                    MainActor.assumeIsolated {
-                        self.onAudioSegment?(segment)
-                    }
-                }
+    private func performSysAccumulation(data: Data) {
+        let now = Date()
+        var segmentToEmit: AudioSegment?
+
+        objc_sync_enter(self.accState)
+        self.accState.sysBuffer.append(data)
+        if now.timeIntervalSince(self.accState.sysBufferStart) >= self.bufferDuration {
+            segmentToEmit = AudioSegment(
+                data: self.accState.sysBuffer,
+                source: .systemAudio,
+                timestamp: self.accState.sysBufferStart,
+                sampleRate: 44100,
+                channelCount: 2
+            )
+            self.accState.sysBuffer = Data()
+            self.accState.sysBufferStart = now
+        }
+        objc_sync_exit(self.accState)
+
+        if let segment = segmentToEmit {
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { self.onAudioSegment?(segment) }
             }
         }
     }
@@ -327,19 +363,8 @@ final class AudioCaptureManager: NSObject, ObservableObject {
     }
 
     private func pcmToData(_ buffer: AVAudioPCMBuffer) -> Data? {
-        guard let channelData = buffer.floatChannelData else { return nil }
-        let count = Int(buffer.frameLength)
-        guard count > 0 else { return nil }
-        // Convert Float32 PCM (-1..1) to signed 16-bit little-endian PCM (LINEAR16)
-        var out = Data(count: count * 2)
-        out.withUnsafeMutableBytes { ptr in
-            guard let i16 = ptr.bindMemory(to: Int16.self).baseAddress else { return }
-            for i in 0..<count {
-                let clamped = max(-1.0, min(1.0, channelData[0][i]))
-                i16[i] = Int16(clamped * Float(Int16.max))
-            }
-        }
-        return out
+        // DEPRECATED: Logic moved to processMicBufferAsync for real-time safety.
+        return nil
     }
 }
 
@@ -375,7 +400,7 @@ final class SCKAudioOutput: NSObject, SCStreamOutput {
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .audio,
               let dataBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) else { return }
-        
+
         // Use a pre-allocated buffer if possible, but for now simple copy
         let len = CMBlockBufferGetDataLength(dataBuffer)
         var data = Data(count: len)
