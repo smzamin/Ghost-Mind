@@ -219,6 +219,10 @@ final class AppState: ObservableObject {
                 }
             }
         }
+
+        NotificationCenter.default.addObserver(forName: Constants.Notification.escapePressed, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.isCollapsed = true }
+        }
     }
 
     func startSession() async {

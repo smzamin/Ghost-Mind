@@ -25,21 +25,21 @@ final class HotKeyManager {
         registerHotKey(keyCode: UInt32(kVK_Return),
                        modifiers: UInt32(cmdKey),
                        id: 2) {
-            NotificationCenter.default.post(name: .instantAssist, object: nil)
+            NotificationCenter.default.post(name: Constants.Notification.instantAssist, object: nil)
         }
 
         // ⌘⇧T — Toggle transcript panel
         registerHotKey(keyCode: UInt32(kVK_ANSI_T),
                        modifiers: UInt32(cmdKey | shiftKey),
                        id: 3) {
-            NotificationCenter.default.post(name: .toggleTranscript, object: nil)
+            NotificationCenter.default.post(name: Constants.Notification.toggleTranscript, object: nil)
         }
 
         // ⌘⇧S — Read Screen (Vision OCR)
         registerHotKey(keyCode: UInt32(kVK_ANSI_S),
                        modifiers: UInt32(cmdKey | shiftKey),
                        id: 4) {
-            NotificationCenter.default.post(name: .readScreen, object: nil)
+            NotificationCenter.default.post(name: Constants.Notification.readScreen, object: nil)
         }
     }
 
@@ -101,8 +101,15 @@ final class HotKeyManager {
                     nil,
                     &hotKeyID
                 )
-                // Copy hotKeyID.id before crossing concurrency boundary
+                
                 let hotKeyIDCopy = hotKeyID.id
+                
+                // If ⌘↩ (id 2) is pressed while GhostMind is active, let it pass through to the local handler
+                // in InputBar.swift instead of triggering the global Instant Assist notification.
+                if hotKeyIDCopy == 2 && NSApplication.shared.isActive {
+                    return OSStatus(eventNotHandledErr)
+                }
+                
                 Task { @MainActor in
                     HotKeyManager.callbacks[hotKeyIDCopy]?()
                 }
@@ -118,9 +125,3 @@ final class HotKeyManager {
 
 // MARK: - Notification Names
 
-extension Notification.Name {
-    static let instantAssist = Notification.Name("GhostMind.instantAssist")
-    static let toggleTranscript = Notification.Name("GhostMind.toggleTranscript")
-    static let newTranscriptSegment = Notification.Name("GhostMind.newTranscriptSegment")
-    static let readScreen = Notification.Name("GhostMind.readScreen")
-}

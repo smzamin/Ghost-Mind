@@ -15,11 +15,12 @@ enum Constants {
     }
     
     enum Notification {
-        static let instantAssist = NSNotification.Name("instantAssist")
-        static let toggleTranscript = NSNotification.Name("toggleTranscript")
-        static let readScreen = NSNotification.Name("readScreen")
-        static let collapseStateChanged = NSNotification.Name("collapseStateChanged")
-        static let audioTranslationNeeded = NSNotification.Name("audioTranslationNeeded")
-        static let newTranscriptSegment = NSNotification.Name("newTranscriptSegment")
+        static let instantAssist = NSNotification.Name("GhostMind.instantAssist")
+        static let toggleTranscript = NSNotification.Name("GhostMind.toggleTranscript")
+        static let readScreen = NSNotification.Name("GhostMind.readScreen")
+        static let collapseStateChanged = NSNotification.Name("GhostMind.collapseStateChanged")
+        static let audioTranslationNeeded = NSNotification.Name("GhostMind.audioTranslationNeeded")
+        static let newTranscriptSegment = NSNotification.Name("GhostMind.newTranscriptSegment")
+        static let escapePressed = NSNotification.Name("GhostMind.escapePressed")
     }
 }

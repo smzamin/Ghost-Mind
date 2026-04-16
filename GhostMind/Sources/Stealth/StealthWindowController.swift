@@ -80,9 +80,18 @@ final class StealthWindowController: NSWindowController {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleCollapseChange(_:)),
-            name: .collapseStateChanged,
+            name: Constants.Notification.collapseStateChanged,
             object: nil
         )
+
+        // Local monitor for Escape key
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.keyCode == 53 { // Escape
+                NotificationCenter.default.post(name: Constants.Notification.escapePressed, object: nil)
+                return nil // consume event
+            }
+            return event
+        }
     }
 
     @objc private func handleCollapseChange(_ note: Notification) {
@@ -134,8 +143,4 @@ final class StealthWindowController: NSWindowController {
     }
 }
 
-// MARK: - Notification name
 
-extension Notification.Name {
-    static let collapseStateChanged = Notification.Name("GhostMind.collapseStateChanged")
-}
