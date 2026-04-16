@@ -28,12 +28,6 @@ struct ControlBar: View {
             // Queue badge (only when items pending)
             QueueBadge(queueManager: state.queueManager)
 
-            // Stealth Mode (Detectable/Undetectable)
-            IconButton(
-                icon: state.isStealth ? "eye.slash.fill" : "eye.fill",
-                tooltip: state.isStealth ? "Make Detectable" : "Make Undetectable"
-            ) { withAnimation(.easeInOut(duration: 0.4)) { state.isStealth.toggle() } }
-
             // Settings
             IconButton(icon: "gear", tooltip: "Settings") { showSettings = true }
 

@@ -13,7 +13,7 @@ struct QuickActionBar: View {
     }
 
     let actions: [Action] = [
-        Action(label: "Assist",              icon: "rocket",                color: .purple,  aiAction: .assist),
+        Action(label: "Assist",              icon: "sparkles",              color: .purple,  aiAction: .assist),
         Action(label: "What should I say?",  icon: "bubble.left.fill",      color: .blue,    aiAction: .whatToSay),
         Action(label: "Follow-ups",          icon: "arrow.triangle.branch", color: .teal,    aiAction: .followUp),
         Action(label: "Recap",               icon: "clock.arrow.circlepath",color: .orange,  aiAction: .recap),

@@ -92,6 +92,7 @@ final class AppState: ObservableObject {
     let screenReader        = ScreenReaderEngine()
     let keyManager          = ProviderKeyManager()
     let queueManager        = RequestQueueManager()
+    @Published var contextDocuments: [ContextDocument] = []
 
     @Published var showTranscript: Bool = true {
         didSet { UserDefaults.standard.set(showTranscript, forKey: Constants.UserDefaults.showTranscript) }
@@ -106,9 +107,7 @@ final class AppState: ObservableObject {
             aiClient.activeMode = interviewMode.rawValue
         }
     }
-    @Published var contextDocuments: [ContextDocument] = []
     @Published var selectedText: String = ""
-    @Published var isStealth: Bool = false
     @Published var showHistory: Bool = false
     @Published var transcriptWidth: CGFloat = 380 {
         didSet { UserDefaults.standard.set(transcriptWidth, forKey: Constants.UserDefaults.transcriptWidth) }
@@ -220,7 +219,6 @@ final class AppState: ObservableObject {
                 }
             }
         }
-        // NOTE: NO collapseStateChanged observer here — that lives only in StealthWindowController
     }
 
     func startSession() async {
@@ -329,9 +327,9 @@ struct MainOverlayView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(state.isStealth ? 0.02 : 0.08), lineWidth: 1)
+                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(state.isStealth ? 0 : 0.7), radius: 30, y: 12)
+        .shadow(color: .black.opacity(0.7), radius: 30, y: 12)
         .opacity(state.opacity)
         .animation(.easeInOut(duration: 0.22), value: state.isCollapsed)
         .animation(.easeInOut(duration: 0.2), value: state.showTranscript)

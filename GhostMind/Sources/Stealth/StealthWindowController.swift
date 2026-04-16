@@ -3,7 +3,7 @@ import SwiftUI
 
 // MARK: - Stealth NSWindow
 
-final class GhostWindow: NSWindow {
+final class GhostWindow: NSPanel {
     override init(
         contentRect: NSRect,
         styleMask style: NSWindow.StyleMask,
@@ -12,7 +12,7 @@ final class GhostWindow: NSWindow {
     ) {
         super.init(
             contentRect: contentRect,
-            styleMask: [.borderless, .fullSizeContentView],
+            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
@@ -24,11 +24,13 @@ final class GhostWindow: NSWindow {
         ignoresMouseEvents = false
         isOpaque = false
         hasShadow = false
+        hidesOnDeactivate = false
         backgroundColor = .clear
-        level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.screenSaverWindow)) + 1)
+        level = .floating
         collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
         isMovableByWindowBackground = true
         animationBehavior = .utilityWindow
+        becomesKeyOnlyIfNeeded = true
     }
 
     override var canBecomeKey: Bool { true }
@@ -53,18 +55,18 @@ final class StealthWindowController: NSWindowController {
         )
         let window = GhostWindow(
             contentRect: initialFrame,
-            styleMask: [.borderless],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
 
         self.init(window: window)
 
-        // Center top-center of main screen
+        // Perfectly center on current main screen
         if let screen = NSScreen.main {
-            let x = (screen.frame.width - initialFrame.width) / 2
-            let y = screen.frame.height * 0.72
-            window.setFrameOrigin(NSPoint(x: x, y: y))
+            let x = (screen.visibleFrame.width - initialFrame.width) / 2
+            let y = (screen.visibleFrame.height - initialFrame.height) / 2
+            window.setFrameOrigin(NSPoint(x: screen.visibleFrame.minX + x, y: screen.visibleFrame.minY + y))
         }
 
         let rootView = MainOverlayView()
@@ -82,8 +84,6 @@ final class StealthWindowController: NSWindowController {
             object: nil
         )
     }
-
-    // MARK: - Collapse / Expand Window Resize
 
     @objc private func handleCollapseChange(_ note: Notification) {
         guard let collapsed = note.object as? Bool,
