@@ -121,6 +121,7 @@ struct ReadScreenButton: View {
             Task {
                 let result = await state.screenReader.captureOnce()
                 isScanning = false
+
                 if let text = result?.text, !text.isEmpty {
                     // Inject screen content as context
                     let prompt = "I can see the following content on screen:\n\n\(text)\n\nPlease help me with this."
@@ -130,6 +131,14 @@ struct ReadScreenButton: View {
                         transcript: state.transcriptionEngine.segments,
                         contextDocuments: [state.activeContext].filter { !$0.isEmpty }
                     )
+                } else {
+                    // Provide feedback if nothing was found
+                    state.aiClient.errorMessage = "OCR found no text on the screen. Ensure the target window is visible."
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        if state.aiClient.errorMessage == "OCR found no text on the screen. Ensure the target window is visible." {
+                            state.aiClient.errorMessage = nil
+                        }
+                    }
                 }
             }
         } label: {

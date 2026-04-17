@@ -8,6 +8,7 @@ enum Constants {
         static let showTranscript = "showTranscript"
         static let opacity = "opacity"
         static let transcriptWidth = "transcriptWidth"
+        static let contextDocuments = "contextDocuments"
         
         static let sttSelectedProvider = "stt_selected_provider"
         static let sttSelectedModel = "stt_selected_model"

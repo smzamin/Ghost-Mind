@@ -46,3 +46,4 @@ secrets*.json
 .gemini/
 node_modules
 venv
+.vscode

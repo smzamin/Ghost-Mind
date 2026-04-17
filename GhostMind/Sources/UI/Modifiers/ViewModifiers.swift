@@ -32,61 +32,10 @@ struct MarkdownText: View {
     let text: String
 
     var body: some View {
-        let lines = text.components(separatedBy: "\n")
-        VStack(alignment: .leading, spacing: 4) {
-            ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                renderLine(line)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func renderLine(_ line: String) -> some View {
-        if line.hasPrefix("### ") {
-            Text(line.dropFirst(4))
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.white)
-        } else if line.hasPrefix("## ") {
-            Text(line.dropFirst(3))
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.white)
-        } else if line.hasPrefix("# ") {
-            Text(line.dropFirst(2))
-                .font(.system(size: 15, weight: .heavy))
-                .foregroundStyle(.white)
-        } else if line.hasPrefix("- ") || line.hasPrefix("• ") {
-            HStack(alignment: .top, spacing: 6) {
-                Text("•").foregroundStyle(.purple).font(.system(size: 13))
-                inlineFormatted(String(line.dropFirst(2)))
-            }
-        } else if line.hasPrefix("**Q:**") {
-            Text(attributedMarkdown(line))
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-        } else if line.hasPrefix("**A:**") {
-            Text(attributedMarkdown(line))
-                .font(.system(size: 13))
-                .foregroundStyle(.white.opacity(0.85))
-        } else if line.hasPrefix("---") {
-            Divider().opacity(0.2)
-        } else if line.isEmpty {
-            Spacer().frame(height: 2)
-        } else {
-            inlineFormatted(line)
-        }
-    }
-
-    private func inlineFormatted(_ string: String) -> some View {
-        Text(attributedMarkdown(string))
+        Text(text.asMarkdownAttributed())
             .font(.system(size: 13))
             .foregroundStyle(.white.opacity(0.88))
             .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private func attributedMarkdown(_ input: String) -> AttributedString {
-        // Simple pass-through — full regex-based bold/code rendering
-        // is added incrementally to avoid overlapping access issues in Swift 6
-        return AttributedString(input)
     }
 }
 

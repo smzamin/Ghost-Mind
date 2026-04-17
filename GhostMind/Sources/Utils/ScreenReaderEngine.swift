@@ -121,7 +121,14 @@ final class ScreenReaderEngine: ObservableObject {
             request.recognitionLanguages = ["en-US"]
 
             let handler = VNImageRequestHandler(cgImage: image, options: [:])
-            try? handler.perform([request])
+            do {
+                try handler.perform([request])
+            } catch {
+                DispatchQueue.main.async {
+                    self.errorMessage = "OCR handler error: \(error.localizedDescription)"
+                }
+                continuation.resume(returning: nil)
+            }
         }
     }
 }

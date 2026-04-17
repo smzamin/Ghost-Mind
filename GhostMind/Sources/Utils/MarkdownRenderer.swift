@@ -29,23 +29,25 @@ extension String {
         // ── Block-level processing (line by line) ───────────────────────────
         let lines = self.components(separatedBy: "\n")
         var offset = 0
+        var inCodeBlock = false
         for line in lines {
             let lineRange = NSRange(location: offset, length: line.utf16.count)
 
-            if line.hasPrefix("### ") {
-                ns.addAttribute(.font, value: h3Font, range: lineRange)
-            } else if line.hasPrefix("## ") {
-                ns.addAttribute(.font, value: h2Font, range: lineRange)
-            } else if line.hasPrefix("# ") {
-                ns.addAttribute(.font, value: h1Font, range: lineRange)
-            } else if line.hasPrefix("---") {
-                // Horizontal rule: replace with em-dash line
-                ns.addAttribute(.foregroundColor, value: NSColor.white.withAlphaComponent(0.15), range: lineRange)
-            } else if line.hasPrefix("- ") || line.hasPrefix("* ") {
-                // Bullet point: prefix with •
-            } else if line.hasPrefix("> ") {
-                // Blockquote
-                ns.addAttribute(.foregroundColor, value: NSColor.systemPurple.withAlphaComponent(0.85), range: lineRange)
+            if line.contains("```") {
+                inCodeBlock.toggle()
+                ns.addAttribute(.foregroundColor, value: NSColor.white.withAlphaComponent(0.2), range: lineRange)
+            } else if inCodeBlock {
+                ns.addAttribute(.font, value: codeFont, range: lineRange)
+            } else {
+                if line.hasPrefix("### ") {
+                    ns.addAttribute(.font, value: h3Font, range: lineRange)
+                } else if line.hasPrefix("## ") {
+                    ns.addAttribute(.font, value: h2Font, range: lineRange)
+                } else if line.hasPrefix("# ") {
+                    ns.addAttribute(.font, value: h1Font, range: lineRange)
+                } else if line.hasPrefix("> ") {
+                    ns.addAttribute(.foregroundColor, value: NSColor.systemPurple.withAlphaComponent(0.85), range: lineRange)
+                }
             }
 
             offset += line.utf16.count + 1  // +1 for newline

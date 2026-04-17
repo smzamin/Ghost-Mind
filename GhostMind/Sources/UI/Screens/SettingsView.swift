@@ -705,6 +705,7 @@ struct ContextDocumentsView: View {
     @State private var manualName = ""
     @State private var manualContent = ""
     @State private var expandedDoc: UUID? = nil
+    @State private var editingDoc: ContextDocument? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -782,6 +783,9 @@ struct ContextDocumentsView: View {
                         onToggleExpand: {
                             withAnimation { expandedDoc = expandedDoc == doc.id ? nil : doc.id }
                         },
+                        onEdit: {
+                            editingDoc = doc
+                        },
                         onDelete: {
                             state.contextDocuments.removeAll { $0.id == doc.id }
                         }
@@ -790,7 +794,8 @@ struct ContextDocumentsView: View {
             }
         }
         .sheet(isPresented: $showManualAdd) {
-            ManualDocumentSheet(
+            DocumentEditorSheet(
+                title: "Add Context Document",
                 name: $manualName,
                 content: $manualContent,
                 onSave: {
@@ -801,6 +806,26 @@ struct ContextDocumentsView: View {
                     showManualAdd = false
                 },
                 onCancel: { showManualAdd = false }
+            )
+        }
+        .sheet(item: $editingDoc) { doc in
+            var name = doc.name
+            var content = doc.rawContent
+            DocumentEditorSheet(
+                title: "Edit Context Document",
+                name: Binding(get: { name }, set: { name = $0 }),
+                content: Binding(get: { content }, set: { content = $0 }),
+                onSave: {
+                    if let idx = state.contextDocuments.firstIndex(where: { $0.id == doc.id }) {
+                        var updated = doc
+                        updated.name = name
+                        updated.rawContent = content
+                        updated.sections = ContextDocument.parseSectionsSync(from: content)
+                        state.contextDocuments[idx] = updated
+                    }
+                    editingDoc = nil
+                },
+                onCancel: { editingDoc = nil }
             )
         }
     }
@@ -843,6 +868,7 @@ struct ContextDocumentCard: View {
     @Binding var doc: ContextDocument
     let isExpanded: Bool
     let onToggleExpand: () -> Void
+    let onEdit: () -> Void
     let onDelete: () -> Void
 
     var body: some View {
@@ -888,6 +914,13 @@ struct ContextDocumentCard: View {
                         .font(.system(size: 11))
                         .foregroundStyle(.orange)
                 }
+
+                Button(action: onEdit) {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.purple.opacity(0.8))
+                }
+                .buttonStyle(.plain)
 
                 Button(action: onToggleExpand) {
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -943,9 +976,10 @@ struct ContextDocumentCard: View {
     }
 }
 
-// MARK: - Manual Document Sheet
+// MARK: - Document Editor Sheet
 
-struct ManualDocumentSheet: View {
+struct DocumentEditorSheet: View {
+    let title: String
     @Binding var name: String
     @Binding var content: String
     let onSave: () -> Void
@@ -955,7 +989,7 @@ struct ManualDocumentSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Add Context Document")
+            Text(title)
                 .font(.system(size: 17, weight: .semibold))
 
             TextField("Document name (e.g. My Resume, Job Description)", text: $name)
@@ -987,7 +1021,7 @@ struct ManualDocumentSheet: View {
             HStack {
                 Spacer()
                 Button("Cancel", action: onCancel).keyboardShortcut(.escape)
-                Button("Add Document", action: onSave)
+                Button("Save Changes", action: onSave)
                     .keyboardShortcut(.return, modifiers: .command)
                     .disabled(name.isEmpty || content.isEmpty)
                     .buttonStyle(.borderedProminent)
@@ -1005,14 +1039,14 @@ struct PrivacySettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeader(title: "Privacy Guarantees", subtitle: "How GhostMind protects your data")
             ForEach([
-                ("lock.shield.fill", "green", "All audio is processed on-device via Apple Neural Engine. Zero cloud upload."),
-                ("key.fill", "blue", "API keys are stored locally on this Mac. No sync, no remote storage."),
-                ("eye.slash.fill", "orange", "No telemetry, analytics, or tracking of any kind."),
-                ("eye.trianglebadge.exclamationmark.fill", "purple", "This window is excluded from all screen capture APIs (sharingType = .none).")
+                (AnyView(Image(systemName: "lock.shield.fill")), Color.green, "All audio is processed on-device via Apple Neural Engine. Zero cloud upload."),
+                (AnyView(Image(systemName: "key.fill")), Color.blue, "API keys are stored locally on this Mac. No sync, no remote storage."),
+                (AnyView(Image(systemName: "eye.slash.fill")), Color.orange, "No telemetry, analytics, or tracking of any kind."),
+                (AnyView(Image(systemName: "eye.trianglebadge.exclamationmark.fill")), Color.purple, "This window is excluded from all screen capture APIs (sharingType = .none).")
             ], id: \.2) { icon, color, text in
                 HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: icon)
-                        .foregroundStyle(Color(color))
+                    icon
+                        .foregroundStyle(color)
                         .frame(width: 22)
                     Text(text)
                         .font(.system(size: 13))

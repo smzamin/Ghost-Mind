@@ -37,6 +37,7 @@ struct AIChatPanel: View {
                     }
                     .padding(16)
                 }
+                .textSelection(.enabled)
                 .onChange(of: aiClient.messages.count) { _ in
                     withAnimation { proxy.scrollTo(aiClient.messages.last?.id, anchor: .bottom) }
                 }
@@ -243,6 +244,7 @@ struct QueueItemRow: View {
 // MARK: - Chat Bubble
 
 struct ChatBubble: View {
+    @EnvironmentObject var state: AppState
     let message: ChatMessage
     @State private var copied  = false
     @State private var hovered = false
@@ -280,6 +282,16 @@ struct ChatBubble: View {
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(.white.opacity(0.25))
                     if !isUser {
+                        Button {
+                            state.selectedText = "Regarding this response: \"\(message.content)\"\n\n"
+                        } label: {
+                            Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.white.opacity(0.4))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 4)
+
                         Button {
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(message.content, forType: .string)

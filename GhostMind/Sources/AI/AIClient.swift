@@ -23,7 +23,7 @@ enum AIError: Error, LocalizedError {
     case networkError(Error)
     case missingAPIKey
     case invalidResponse
-    
+
     var errorDescription: String? {
         switch self {
         case .timeout:      return "Request timed out after \(Int(AIClient.defaultTimeout))s"
@@ -52,31 +52,31 @@ final class AIClient: ObservableObject {
 
     @Published var isLoading = false
     @Published var messages: [ChatMessage] = []
-    
+
     @PersistRaw(key: Constants.UserDefaults.selectedProvider, defaultValue: AIProvider.openAI.rawValue)
     private var persistedProvider: String
     @Published var selectedProvider: AIProvider = .openAI {
         didSet { persistedProvider = selectedProvider.rawValue }
     }
-    
+
     @PersistRaw(key: Constants.UserDefaults.selectedModel, defaultValue: "")
     private var persistedModel: String
     @Published var selectedModel: String = "" {
         didSet { persistedModel = selectedModel }
     }
-    
+
     @PersistRaw(key: Constants.UserDefaults.interviewMode, defaultValue: "Technical")
     private var persistedMode: String
     @Published var activeMode: String = "Technical" {
         didSet { persistedMode = activeMode }
     }
-    
+
     @Published var errorMessage: String?
     @Published var latencyMs: Double = 0
-    @Published var rotationLog: [String] = [] 
-    
+    @Published var rotationLog: [String] = []
+
     var keyManager: ProviderKeyManager?
-    var requestTimeout: TimeInterval = 45 
+    var requestTimeout: TimeInterval = 45
     var onMessageAdded: ((ChatMessage) -> Void)?
 
     init(store: KeyValueStore = UserDefaultsStore(prefix: "ghostmind.ai.")) {
@@ -180,7 +180,7 @@ final class AIClient: ObservableObject {
                 throw AIError.keysExhausted(provider.rawValue)
             }
 
-            log("[\(provider.shortName)] ➜ Using Key: \(keyEntry.label.isEmpty ? "Key" : keyEntry.label) (\(model))")
+            log("[\(provider.shortName)] ➜ Trying Key: \(keyEntry.label.isEmpty ? "Key" : keyEntry.label) (\(model))")
             
             do {
                 let r = try await sendRequest(
@@ -195,11 +195,19 @@ final class AIClient: ObservableObject {
                 )
                 if !r.isEmpty { return r }
             } catch {
-                return nil  // Don't retry on non-quota errors
+                let errorMsg = error.localizedDescription
+                if isQuotaOrRateError(errorMsg) {
+                    log("[\(provider.shortName)] ⚠ Quota/Rate limit with key '\(keyEntry.label)'. Retrying with next key...")
+                    // Optionally mark the key as cooled down if keyManager supported it
+                    continue 
+                } else {
+                    log("[\(provider.shortName)] ✘ Terminal Error: \(errorMsg)")
+                    throw error // Propagate auth/context-length/etc. errors immediately
+                }
             }
         }
 
-        return nil  // All keys for this provider exhausted
+        throw AIError.keysExhausted(provider.rawValue)
     }
 
     private func effectiveModel(_ provider: AIProvider) -> String {
@@ -234,16 +242,20 @@ final class AIClient: ObservableObject {
             .map { "[\($0.speaker.rawValue)]: \($0.text)" }
             .joined(separator: "\n")
 
+        let compressedTranscript = ContextCompressor.compress(transcriptText)
+
         let contextText = contextDocuments.isEmpty ? "" :
             "\n\n## Context Documents:\n" + contextDocuments.joined(separator: "\n---\n")
 
-        let systemContent = action.systemPrompt + contextText
+        let compressedContext = ContextCompressor.compress(contextText)
+
+        let systemContent = action.systemPrompt + compressedContext
         let userContent = """
         [System Configuration — Active Mode: \(activeMode)]
         Please ensure all responses, tone, and guidance adhere strictly to the rules of the \(activeMode) scenario.
 
         ## Live Transcript (last 40 lines):
-        \(transcriptText.isEmpty ? "(No transcript yet)" : transcriptText)
+        \(compressedTranscript.isEmpty ? "(No transcript yet)" : compressedTranscript)
 
         ## User Query:
         \(userPrompt)
@@ -280,25 +292,44 @@ final class AIClient: ObservableObject {
             if !apiKey.isEmpty { req.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization") }
         }
 
+        let startOfMessages = messages.dropLast().suffix(100)
+
         let encoder = JSONEncoder()
         switch provider {
         case .anthropic:
-            let body = AnthropicRequest(model: model, system: systemContent, messages: [.init(role: "user", content: userContent)])
+            var apiMessages: [AnthropicRequest.Message] = startOfMessages.map {
+                .init(role: $0.role == .user ? "user" : "assistant", content: ContextCompressor.compress($0.content))
+            }
+            apiMessages.append(.init(role: "user", content: userContent))
+            let body = AnthropicRequest(model: model, system: systemContent, messages: apiMessages)
             req.httpBody = try encoder.encode(body)
+
         case .gemini:
-            let body = GeminiRequest(contents: [.init(parts: [.init(text: systemContent + "\n\n" + userContent)])])
+            // Gemini version — join history into contents
+            var contents: [GeminiRequest.Content] = startOfMessages.map {
+                .init(role: $0.role == .user ? "user" : "model", parts: [.init(text: ContextCompressor.compress($0.content))])
+            }
+            contents.append(.init(role: "user", parts: [.init(text: systemContent + "\n\n" + userContent)]))
+            let body = GeminiRequest(contents: contents)
             req.httpBody = try encoder.encode(body)
+
         default:
-            let body = OpenAIRequest(model: model, messages: [
-                .init(role: "system", content: systemContent),
-                .init(role: "user", content: userContent)
-            ])
+            var apiMessages: [OpenAIRequest.Message] = [
+                .init(role: "system", content: systemContent)
+            ]
+            for msg in startOfMessages {
+                let compressed = ContextCompressor.compress(msg.content)
+                apiMessages.append(.init(role: msg.role == .user ? "user" : "assistant", content: compressed))
+            }
+            apiMessages.append(.init(role: "user", content: userContent))
+
+            let body = OpenAIRequest(model: model, messages: apiMessages)
             req.httpBody = try encoder.encode(body)
         }
 
         let (data, response) = try await URLSession.shared.data(for: req)
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 0
-        
+
         guard (200...299).contains(statusCode) else {
             let body = String(data: data, encoding: .utf8) ?? "HTTP \(statusCode)"
             throw AIError.apiError("[\(statusCode)] \(body)")
@@ -342,6 +373,7 @@ final class AIClient: ObservableObject {
     }
     struct GeminiRequest: Encodable {
         struct Content: Encodable {
+            let role: String
             struct Part: Encodable { let text: String }
             let parts: [Part]
         }
@@ -356,5 +388,135 @@ final class AIClient: ObservableObject {
             let content: Content
         }
         let candidates: [Candidate]
+    }
+}
+
+// MARK: - Context Compressor
+
+struct ContextCompressor {
+
+    static func compress(_ text: String) -> String {
+        // 1. Separate code blocks (they must be preserved exactly)
+        let blocks = separateCodeBlocks(text)
+
+        var compressedBlocks: [String] = []
+        for block in blocks {
+            if block.hasPrefix("```") || block.hasPrefix("`") {
+                // Preserve code
+                compressedBlocks.append(block)
+            } else {
+                // Compress prose
+                compressedBlocks.append(compressProse(block))
+            }
+        }
+
+        return compressedBlocks.joined()
+    }
+
+    // MARK: - Private
+
+    private static func separateCodeBlocks(_ text: String) -> [String] {
+        var results: [String] = []
+        let scanner = Scanner(string: text)
+        scanner.charactersToBeSkipped = nil
+
+        var lastPos = text.startIndex
+
+        while !scanner.isAtEnd {
+            let start = scanner.currentIndex
+
+            // Look for ``` or `
+            if scanCodeBlock(scanner, delimiter: "```") || scanCodeBlock(scanner, delimiter: "`") {
+                let prose = String(text[lastPos..<start])
+                if !prose.isEmpty { results.append(prose) }
+
+                let code = String(text[start..<scanner.currentIndex])
+                results.append(code)
+                lastPos = scanner.currentIndex
+            } else {
+                _ = scanner.scanCharacter()
+            }
+        }
+
+        let finalProse = String(text[lastPos...])
+        if !finalProse.isEmpty { results.append(finalProse) }
+
+        return results
+    }
+
+    private static func scanCodeBlock(_ scanner: Scanner, delimiter: String) -> Bool {
+        guard scanner.string[scanner.currentIndex...].hasPrefix(delimiter) else { return false }
+
+        let start = scanner.currentIndex
+        // Skip opening delimiter
+        for _ in 0..<delimiter.count { _ = scanner.scanCharacter() }
+
+        // Find closing delimiter
+        while !scanner.isAtEnd {
+            if scanner.string[scanner.currentIndex...].hasPrefix(delimiter) {
+                for _ in 0..<delimiter.count { _ = scanner.scanCharacter() }
+                return true
+            }
+            _ = scanner.scanCharacter()
+        }
+
+        // If no closing delimiter, treat as prose from start
+        scanner.currentIndex = start
+        return false
+    }
+
+    private static func compressProse(_ text: String) -> String {
+        var result = text
+
+        // --- REMOVE ARTICLES ---
+        let articles = [" a ", " an ", " the ", " A ", " An ", " The "]
+        for art in articles {
+            result = result.replacingOccurrences(of: art, with: " ")
+        }
+        // Handle start of string articles
+        if result.hasPrefix("A ") || result.hasPrefix("An ") || result.hasPrefix("The ") {
+             result = result.components(separatedBy: " ").dropFirst().joined(separator: " ")
+        }
+
+        // --- REMOVE FILLERS & PLEASANTRIES ---
+        let fillers = [
+            "just", "really", "basically", "actually", "simply", "essentially", "generally",
+            "sure", "certainly", "of course", "happy to", "I'd recommend",
+            "it might be worth", "you could consider", "it would be good to",
+            "however", "furthermore", "additionally", "in addition"
+        ]
+
+        for filler in fillers {
+            let pattern = "\\b\(filler)\\b[,\\.]?"
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                result = regex.stringByReplacingMatches(in: result, options: [], range: NSRange(location: 0, length: result.utf16.count), withTemplate: "")
+            }
+        }
+
+        // --- REDUNDANT PHRASING ---
+        let replacements = [
+            "in order to": "to",
+            "make sure to": "ensure",
+            "the reason is because": "because",
+            "utilize": "use",
+            "extensive": "big",
+            "implement a solution for": "fix",
+            "You should": "",
+            "you should": "",
+            "remember to": "",
+            "Make sure to": "Ensure"
+        ]
+
+        for (pattern, sub) in replacements {
+            result = result.replacingOccurrences(of: pattern, with: sub, options: .caseInsensitive)
+        }
+
+        // --- CLEANUP ---
+        // Remove double spaces
+        while result.contains("  ") {
+            result = result.replacingOccurrences(of: "  ", with: " ")
+        }
+
+        return result.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

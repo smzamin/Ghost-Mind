@@ -92,7 +92,13 @@ final class AppState: ObservableObject {
     let screenReader        = ScreenReaderEngine()
     let keyManager          = ProviderKeyManager()
     let queueManager        = RequestQueueManager()
-    @Published var contextDocuments: [ContextDocument] = []
+    @Published var contextDocuments: [ContextDocument] = [] {
+        didSet {
+            if let data = try? JSONEncoder().encode(contextDocuments) {
+                UserDefaults.standard.set(data, forKey: Constants.UserDefaults.contextDocuments)
+            }
+        }
+    }
 
     @Published var showTranscript: Bool = true {
         didSet { UserDefaults.standard.set(showTranscript, forKey: Constants.UserDefaults.showTranscript) }
@@ -135,6 +141,12 @@ final class AppState: ObservableObject {
         if let modeStr = UserDefaults.standard.string(forKey: Constants.UserDefaults.interviewMode),
            let mode = InterviewMode(rawValue: modeStr) {
             self.interviewMode = mode
+        }
+
+        // Load persisted context documents
+        if let data = UserDefaults.standard.data(forKey: Constants.UserDefaults.contextDocuments),
+           let docs = try? JSONDecoder().decode([ContextDocument].self, from: data) {
+            self.contextDocuments = docs
         }
 
         // ── Wire key rotation manager into AI client ──────────────────────────

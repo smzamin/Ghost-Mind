@@ -34,17 +34,22 @@ struct SessionHistoryView: View {
             if let session = selectedSession {
                 SessionDetailView(session: session, isSummarizing: $isSummarizing, summaryText: $summaryText)
             } else {
-                Text("Select a session to view details")
-                    .foregroundStyle(.secondary)
+                VStack {
+                    Spacer()
+                    Text("Select a session to view details")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
             }
         }
-        .frame(minWidth: 800, minHeight: 600)
+        .frame(maxWidth: 800, minHeight: 600)
     }
 }
 
 struct SessionRow: View {
     let session: MeetingSession
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(session.title)
@@ -70,36 +75,39 @@ struct SessionDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            HStack {
-                VStack(alignment: .leading) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 10) {
                     Text(session.title).font(.title2).bold()
                     Text(session.startedAt.formatted()).font(.subheadline).foregroundStyle(.secondary)
+
+                    HStack(spacing: 12) {
+                        Button {
+                            Task {
+                                isSummarizing = true
+                                summaryText = await state.sessionManager.summarizeSession(session, aiClient: state.aiClient)
+                                isSummarizing = false
+                            }
+                        } label: {
+                            Label("Summarize", systemImage: "sparkles")
+                        }
+                        .disabled(isSummarizing)
+                        .buttonStyle(.bordered)
+
+                        Menu {
+                            Button("Markdown (.md)") { state.sessionManager.exportToFile(session: session, format: .markdown) }
+                            Button("Plain Text (.txt)") { state.sessionManager.exportToFile(session: session, format: .plainText) }
+                            Button("JSON (.json)") { state.sessionManager.exportToFile(session: session, format: .json) }
+                        } label: {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
+                        .buttonStyle(.bordered)
+                        .fixedSize()
+                    }
                 }
                 Spacer()
-                
-                HStack(spacing: 12) {
-                    Button {
-                        Task {
-                            isSummarizing = true
-                            summaryText = await state.sessionManager.summarizeSession(session, aiClient: state.aiClient)
-                            isSummarizing = false
-                        }
-                    } label: {
-                        Label("Summarize", systemImage: "sparkles")
-                    }
-                    .disabled(isSummarizing)
-                    
-                    Menu {
-                        Button("Markdown (.md)") { state.sessionManager.exportToFile(session: session, format: .markdown) }
-                        Button("Plain Text (.txt)") { state.sessionManager.exportToFile(session: session, format: .plainText) }
-                        Button("JSON (.json)") { state.sessionManager.exportToFile(session: session, format: .json) }
-                    } label: {
-                        Label("Export", systemImage: "square.and.arrow.up")
-                    }
-                }
             }
-            .padding()
-            .background(Color.white.opacity(0.03))
+            .padding(24)
+            .background(Color.white.opacity(0.02))
 
             Divider()
 
@@ -113,7 +121,7 @@ struct SessionDetailView: View {
                             .textSelection(.enabled)
                             .padding()
                             .background(Color.purple.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                        
+
                         Button("Clear Summary") { summaryText = nil }.buttonStyle(.plain).font(.caption).foregroundStyle(.secondary)
                     }
                     .padding()
@@ -123,29 +131,37 @@ struct SessionDetailView: View {
             // Tabs for Transcript / Chat
             TabView {
                 // Transcript Tab
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
+                ScrollView([.vertical, .horizontal]) {
+                    VStack(alignment: .leading, spacing: 16) {
                         ForEach(session.transcript) { seg in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("\(seg.speaker.rawValue) (\(seg.timestamp.formatted(date: .omitted, time: .shortened)))")
-                                    .font(.caption).bold().foregroundStyle(.purple)
-                                Text(seg.text).textSelection(.enabled)
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(.purple.opacity(0.8))
+
+                                Text(seg.text)
+                                    .font(.system(size: 13))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .textSelection(.enabled)
                             }
-                            .padding(.horizontal)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 10)
+                            .frame(width: 410, alignment: .leading)
                         }
                     }
-                    .padding(.vertical)
+                    .padding(.horizontal, 0)
                 }
                 .tabItem { Label("Transcript", systemImage: "waveform") }
 
                 // Chat Tab
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
+                ScrollView([.vertical, .horizontal]) {
+                    VStack(alignment: .leading, spacing: 20) {
                         ForEach(session.chatMessages) { msg in
                             SessionChatBubble(message: msg)
                         }
+                    .frame(width: 410, alignment: .leading)
                     }
-                    .padding()
+                    .padding(.horizontal, 0)
                 }
                 .tabItem { Label("AI Chat", systemImage: "bubble.left.and.bubble.right") }
             }
@@ -158,22 +174,31 @@ struct SessionDetailView: View {
 
 struct SessionChatBubble: View {
     let message: ChatMessage
-    
+
     var body: some View {
-        HStack {
-            if message.role == .user { Spacer() }
-            
-            VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
-                Text(message.role == .user ? "You" : "Assistant")
-                    .font(.caption).bold().foregroundStyle(.secondary)
-                Text(message.content)
-                    .padding(10)
-                    .background(message.role == .user ? Color.purple : Color.white.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .textSelection(.enabled)
-            }
-            
-            if message.role != .user { Spacer() }
+        VStack(alignment: message.role == .user ? .trailing : .leading, spacing: 4) {
+            Text(message.role == .user ? "You" : "Assistant")
+                .font(.caption).bold().foregroundStyle(.secondary)
+
+            MarkdownText(text: message.content)
+                .padding(14)
+                .background(
+                    message.role == .user
+                    ? Color.purple.opacity(0.85)
+                    : Color.gray.opacity(0.85)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            message.role == .user ? Color.white : Color.cyan.opacity(0.2),
+                            lineWidth: 1
+                        )
+                )
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
         }
+        .frame(maxWidth: .infinity, alignment: message.role == .user ? .trailing : .leading)
+        .padding(.horizontal, 16)
     }
 }
