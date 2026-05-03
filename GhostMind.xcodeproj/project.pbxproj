@@ -22,6 +22,7 @@
 		64A0F502205AF8DAF4DCD8AB /* ViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66D815C402A10627CB7A5FEF /* ViewModifiers.swift */; };
 		75655A7A6BEE8E1253F384C9 /* QuickActionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22080BC062B1AE22CB2F4756 /* QuickActionBar.swift */; };
 		783C112AF72AAB83E5F1457B /* KeyValueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB8B63BAAF9146E1C5327776 /* KeyValueStore.swift */; };
+		84E58EC32FA7DB32001D94E5 /* AppIcon.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 84B1D8B22FA7D5F0005B1C93 /* AppIcon.xcassets */; };
 		9404D7CC5BF3751BB5B4DA10 /* RequestQueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A387425C665826B2349FDA7 /* RequestQueueManager.swift */; };
 		C411A14108DF15FEE838132B /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99CB2B1A65A7DB8F32E1D70B /* AIProvider.swift */; };
 		C638721376608505F0C8FA1C /* ControlBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F4E27A0695C0D6372790B4 /* ControlBar.swift */; };
@@ -74,7 +75,7 @@
 		77428D2F88CBF8D85934A3D5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		788C9B8E55CEC0D881D544C9 /* WhisperEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperEngine.swift; sourceTree = "<group>"; };
 		78E94218286F2B2E59B94720 /* ProviderKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyManager.swift; sourceTree = "<group>"; };
-		849914B02F8FA3440040A544 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		84B1D8B22FA7D5F0005B1C93 /* AppIcon.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = AppIcon.xcassets; sourceTree = "<group>"; };
 		9264B97F761ADA69D712F488 /* GhostMindApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostMindApp.swift; sourceTree = "<group>"; };
 		92C169CB1399E284DF5197E9 /* GhostMindTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GhostMindTests.swift; sourceTree = "<group>"; };
 		99CB2B1A65A7DB8F32E1D70B /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
@@ -130,7 +131,7 @@
 			children = (
 				696432B9672D13FF640FFB3B /* Sources */,
 				DFBD3ACCA3EC6B8472359FE1 /* Tests */,
-				849914B02F8FA3440040A544 /* Assets.xcassets */,
+				84B1D8B22FA7D5F0005B1C93 /* AppIcon.xcassets */,
 			);
 			path = GhostMind;
 			sourceTree = "<group>";
@@ -250,6 +251,7 @@
 			buildConfigurationList = 23BD98F6B9EA90D58E85A48D /* Build configuration list for PBXNativeTarget "GhostMind" */;
 			buildPhases = (
 				5DB8BCC4645C22E5B95A6622 /* Sources */,
+				84E58EC22FA7DB29001D94E5 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -306,6 +308,15 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		84E58EC22FA7DB29001D94E5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				84E58EC32FA7DB32001D94E5 /* AppIcon.xcassets in Resources */,
+			);
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5DB8BCC4645C22E5B95A6622 /* Sources */ = {
@@ -549,13 +560,13 @@
 				APPLICATION_EXTENSION_API_ONLY = NO;
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = GhostMind/Resources/GhostMind.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = GhostMind/Assets.xcassets;
+				DEVELOPMENT_ASSET_PATHS = GhostMind/AppIcon.xcassets;
 				DEVELOPMENT_TEAM = 79ZT3BFA64;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -564,6 +575,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				INFOPLIST_FILE = GhostMind/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ghost Mind";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -581,13 +593,13 @@
 				APPLICATION_EXTENSION_API_ONLY = NO;
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = GhostMind/Resources/GhostMind.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = GhostMind/Assets.xcassets;
+				DEVELOPMENT_ASSET_PATHS = GhostMind/AppIcon.xcassets;
 				DEVELOPMENT_TEAM = 79ZT3BFA64;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -596,6 +608,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				INFOPLIST_FILE = GhostMind/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Ghost Mind";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
